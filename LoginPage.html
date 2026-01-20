@@ -3,23 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evangeline</title>
+  <title>Project Evangeline</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Mystery+Quest&family=Fredericka+the+Great&family=Shadows+Into+Light&display=swap" rel="stylesheet">
-
 </head>
-<body class="GeneralBody">
+<body class="LoginBody">
     <header>
-        <h1 class="StartingTitle">EVANGELINE</h1>
-        <nav class="StartingNav">
-            <ul class="StartingNavLinks">
-                <li><a href="StoryMode.html" class="active">Story</a></li>
-                <li><a href="SurvivalMode.html">Survival</a></li>
-                <li><a href="Leaderboard.html">Leaderboard</a></li>
-            </ul>
-        </nav>
+        <h1 class="LoginTitle">EVANGELINE</h1>
     </header>
+    <form class="LoginForm">
+        <div class="LoginLabel">Username</div>
+        <input type="text" id="username" required class="Usernameformitem">
+        <div class="LoginLabel">Password</div>
+        <input type="password" id="password" required class="Passwordformitem">
+        <a href="" class="SignUpButton">Sign Up</a>
+        <button type="submit" class="LoginFormSubmit">Log In</button>
+    </form>
 </body>
-</html>
