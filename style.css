@@ -1,0 +1,124 @@
+/*Global Styles*/
+
+body {
+    position: relative;
+    min-height: 100vh; 
+    margin: 0;
+    background: #000000;
+    position: relative;
+}
+
+/*Style for Starting Page*/
+
+
+.StartingTitle {
+    font-family: 'Fredericka the Great', cursive;
+    font-size: 120px;
+    color: #FF0000;
+    text-align: center;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.StartingNavLinks {
+    font-family: 'Roboto', sans-serif;
+    list-style: none;
+    gap: 50px;
+    font-size: 48px;
+    text-align: center;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;          
+    letter-spacing: 0.2em;     
+    text-transform: uppercase; 
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+ 
+.StartingNavLinks a {
+    color: #7f0b0b;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.StartingNavLinks a:hover {
+    color: #FF0000;
+}
+
+/*Style for Leaderboard Page*/
+
+.LeaderboardTitle {
+    font-family: 'Fredericka the Great', cursive;
+    font-size: 100px;
+    color: #FF0000;
+    text-align: center;
+    top: 12%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+}
+
+.SubslistHeader {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7f0b0b;
+    display: flex;
+    flex-direction: row;
+    gap: 250px;
+    justify-content: center; 
+    position: absolute;
+    top: 34%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    list-style: none;
+
+}
+
+.PlayerSubsList {
+    font-family : 'Roboto', sans-serif;
+    font-size: 28px;
+    color: #7f0b0b;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    position: absolute;
+    top: 52%;
+    left: 27.5%;
+    transform: translate(-50%, -50%);
+    list-style: none;
+}
+
+
+.TimeSubsList {
+    font-family: 'Roboto', sans-serif;
+    font-size: 28px;
+    color: #7f0b0b;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    position: absolute;
+    top: 52%;
+    left: 50.5%;
+    transform: translate(-50%, -50%);
+    list-style: none;
+}
+
+.ScoreSubsList {
+    font-family: 'Roboto', sans-serif;
+    font-size: 28px;
+    color: #7f0b0b;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    position: absolute;
+    top: 52%;
+    left: 71.5%;
+    transform: translate(-50%, -50%);
+    list-style: none;
+}
