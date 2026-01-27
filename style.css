@@ -140,7 +140,7 @@ body {
 }
 
 .LoginBody {
-    background-image: url(Bedroom3rdpersp.jpg);
+    background-image: url(Assets/ProjectEvangelineLogin.png);
     background-size: cover;       
     background-position: center;   
     background-repeat: no-repeat;  
@@ -168,7 +168,7 @@ body {
     padding: 6.5px;
     font-size: 18px;
     border: 1.5px solid #7f0b0b;
-    background-color: white;
+    background-color: rgb(30, 26, 26);
     border-radius: 6px;
     width: 250px;
 }
@@ -176,7 +176,7 @@ body {
 .Passwordformitem {
     padding: 6.5px;
     font-size: 18px;
-    background-color: white;
+    background-color: rgb(30, 26, 26);
     border: 1.5px solid #7f0b0b;
     border-radius: 6px;
     width: 250px;
