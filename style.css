@@ -213,3 +213,55 @@ body {
 .LoginButton:hover {
     background-color: #FF0000;
 }
+
+/*Style for Starting Bedroom Page*/
+
+
+.StartingBedroomBody {
+    background-image: url(Assets/ProjectEvangelineBedroomPOV.jpeg);
+    background-size: cover;       
+    background-position: center;   
+    background-repeat: no-repeat;  
+    height: 100vh;
+    margin: 0;
+}
+
+
+/*Dialogue Boxes*/
+
+
+#dialogueBox {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 800px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 2px solid #8b0000;
+  border-radius: 12px;
+  padding: 30px 24px;
+  color: #eee;
+  font-family: "Georgia", serif;
+  font-size: 1.4rem;
+  box-shadow: 0 0 20px rgba(255,0,0,0.2);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+#dialogueText {
+  margin: 0;
+  text-align: left;
+}
+
+#dialogueHint {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  opacity: 0.5;
+  text-align: left;
+  font-style: italic;
+}
+
