@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evangeline</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body id="GameBody">
+  <div id="scene">
+    <img src="Assets/ProjectEvangelineBedroomPOV.png" id="GameBackground" alt="StartingBedroom">
+
+    <div id="dialogueBox" class="hidden">
+      <p id="dialogueText">what time is it? why do i feel so dizzy?</p>
+      <p id="dialogueHint">(click anywhere to continue)</p>
+    </div>
+
+    <div id="arrowSet" class="hidden">
+      <button id="arrowLeft" data-dir="left">◀</button>
+      <button id="arrowRight" data-dir="right">▶</button>
+      <button id="arrowForward" data-dir="forward">▲</button>
+      <button id="arrowBackward" data-dir="back">▼</button>
+      <button id="pauseBtn">⏸ Pause</button>
+    </div>
+
+    <div id="pauseOverlay" class="hidden">
+      <div id="pauseMenu">
+        <h2>Paused</h2>
+        <button id="resume">Continue</button>
+        <button id="restart">Restart</button>
+        <button id="quit">Quit</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

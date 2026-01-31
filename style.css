@@ -14,7 +14,7 @@ body {
 /*Style for Starting Page*/
 
 
-.StartingTitle {
+#StartingTitle {
     font-family: 'Fredericka the Great', cursive;
     font-size: 120px;
     color: #FF0000;
@@ -25,7 +25,7 @@ body {
     transform: translate(-50%, -50%);
 }
 
-.StartingNavLinks {
+#StartingNavLinks {
     font-family: 'Roboto', sans-serif;
     list-style: none;
     gap: 50px;
@@ -42,19 +42,19 @@ body {
     transform: translate(-50%, -50%);
 }
  
-.StartingNavLinks a {
+#StartingNavLinks a {
     color: #7f0b0b;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
-.StartingNavLinks a:hover {
+#StartingNavLinks a:hover {
     color: #FF0000;
 }
 
 /*Style for Leaderboard Page*/
 
-.LeaderboardTitle {
+#LeaderboardTitle {
     font-family: 'Fredericka the Great', cursive;
     font-size: 100px;
     color: #FF0000;
@@ -65,7 +65,7 @@ body {
     position: absolute;
 }
 
-.SubslistHeader {
+#SubslistHeader {
     font-family: 'Roboto', sans-serif;
     font-size: 32px;
     letter-spacing: 0.1em;
@@ -83,7 +83,7 @@ body {
 
 }
 
-.PlayerSubsList {
+#PlayerSubsList {
     font-family : 'Roboto', sans-serif;
     font-size: 28px;
     color: #7f0b0b;
@@ -98,7 +98,7 @@ body {
 }
 
 
-.TimeSubsList {
+#TimeSubsList {
     font-family: 'Roboto', sans-serif;
     font-size: 28px;
     color: #7f0b0b;
@@ -112,7 +112,7 @@ body {
     list-style: none;
 }
 
-.ScoreSubsList {
+#ScoreSubsList {
     font-family: 'Roboto', sans-serif;
     font-size: 28px;
     color: #7f0b0b;
@@ -128,7 +128,7 @@ body {
 
 /*Style for Log In Page*/
 
-.LoginTitle {
+#LoginTitle {
     font-family: 'Fredericka the Great', cursive;
     font-size: 100px;
     color:#FF0000;
@@ -139,7 +139,7 @@ body {
     transform: translate(-50%, -50%);
 }
 
-.LoginBody {
+#LoginBody {
     background-image: url(Assets/ProjectEvangelineLogin.png);
     background-size: cover;       
     background-position: center;   
@@ -148,7 +148,7 @@ body {
     margin: 0;
 }
 
-.LoginForm {
+#LoginForm {
     position: absolute;
     top: 53%;
     left: 50%;
@@ -158,13 +158,13 @@ body {
     gap: 10px;
 }
 
-.LoginLabel {
+#LoginLabel {
     font-family: 'Amiri', sans-serif;
     font-size: 24px;
     color: #7f0b0b;
 }
 
-.Usernameformitem {
+#username {
     padding: 6.5px;
     font-size: 18px;
     border: 1.5px solid #7f0b0b;
@@ -173,7 +173,7 @@ body {
     width: 250px;
 }
 
-.Passwordformitem {
+#password {
     padding: 6.5px;
     font-size: 18px;
     background-color: rgb(30, 26, 26);
@@ -182,19 +182,19 @@ body {
     width: 250px;
 }
 
-.SignUpButton {
+#SignUpButton {
     font-family: 'Amiri', sans-serif;
     font-size: 16px;
-    color: #7f0b0b;
+    color: rgb(30, 26, 26);
     text-align: center;
     margin-top: 6px;
 }
 
-.SignUpButton:hover {
+#SignUpButton:hover {
     color: #FF0000;
 }
 
-.LoginButton {
+#LoginButton {
     font-family: 'Amiri', sans-serif;
     font-size: 18px;
     color: #FFFFFF;
@@ -210,21 +210,37 @@ body {
     transform: translate(-50%, -50%);
 }
 
-.LoginButton:hover {
+#LoginButton:hover {
     background-color: #FF0000;
 }
 
-/*Style for Starting Bedroom Page*/
+/*Style for Game Scenes*/
 
 
-.StartingBedroomBody {
-    background-image: url(Assets/ProjectEvangelineBedroomPOV.png);
-    background-size: cover;       
-    background-position: center;   
-    background-repeat: no-repeat;  
-    height: 100vh;
-    margin: 0;
+#GameBody {
+  margin: 0;
+  overflow: hidden;
 }
+
+#scene {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+
+#GameBackground {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+
+
 
 
 /*Dialogue Boxes (Game)*/
@@ -250,6 +266,7 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
+  z-index: 10;
 }
 
 #dialogueText {
@@ -268,7 +285,15 @@ body {
 
 /*Navigation Arrows (Game)*/
 
-.arrowForward {
+
+#arrowSet {
+  position: absolute;
+  inset: 0;     
+  z-index: 10;
+}
+
+
+#arrowForward {
   background: none;
   border: none;
   outline: none;
@@ -281,19 +306,15 @@ body {
     0 0 6px rgba(255, 0, 0, 0.7),
     0 0 12px rgba(255, 0, 0, 0.5),
     0 0 20px rgba(255, 0, 0, 0.3);
-
   -webkit-tap-highlight-color: transparent;
-
   position: absolute;
   top: 35%;
   left: 48%;
   transform: translate(-50%, -50%);
-
-  display: none;
 }
 
 
-.arrowLeft {
+#arrowLeft {
   background: none;
   border: none;
   outline: none;
@@ -315,7 +336,7 @@ body {
   transform: translate(-50%, -50%);
 }
 
-.arrowRight {
+#arrowRight {
   background: none;
   border: none;
   outline: none;
@@ -337,7 +358,7 @@ body {
   transform: translate(-50%, -50%);
 }
 
-.arrowBackward {
+#arrowBackward {
   background: none;
   border: none;
   outline: none;
@@ -357,23 +378,31 @@ body {
   bottom: 5%;
   left: 48%;
   transform: translate(-50%, -50%);
-  display: none;
 }
 
-.arrowForward:hover,
-.arrowBackward:hover,
-.arrowLeft:hover,
-.arrowRight:hover {
+#arrowForward:hover,
+#arrowBackward:hover,
+#arrowLeft:hover,
+#arrowRight:hover {
   color: rgba(255, 0, 0, 1);
 }
 
-.arrowForward:active,
-.arrowBackward:active,
-.arrowLeft:active,
-.arrowRight:active {
+#arrowForward:active,
+#arrowBackward:active,
+#arrowLeft:active,
+#arrowRight:active {
   color: rgba(0, 0, 0, 0.75);
   text-shadow:
     0 0 6px rgba(255, 0, 0, 0.7),
     0 0 12px rgba(255, 0, 0, 0.5),
     0 0 20px rgba(255, 0, 0, 0.3);
+}
+
+
+/*Pause Menu (Game)*/
+
+#pauseOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
 }
