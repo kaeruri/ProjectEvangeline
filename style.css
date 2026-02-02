@@ -682,3 +682,24 @@ body {
   box-shadow: 0 0 14px rgba(255,0,0,0.5);
   transition: width 0.25s ease;
 }
+
+/*Hotspots*/
+
+#hotspots {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.hotspot {
+  position: absolute;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+
+.hotspot {
+  background: rgba(255, 0, 0, 0.25);
+  outline: 2px solid red;
+}
