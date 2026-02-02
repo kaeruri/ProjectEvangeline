@@ -263,7 +263,7 @@ body {
 #Evangeline {
   position: absolute;
   bottom: 0;
-  right: 7%;
+  right: 6%;
   z-index: 50;
   pointer-events: none;
 }
