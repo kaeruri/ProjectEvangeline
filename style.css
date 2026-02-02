@@ -263,7 +263,7 @@ body {
 #Evangeline {
   position: absolute;
   bottom: 0;
-  right: 12%;
+  right: 7%;
   z-index: 50;
   pointer-events: none;
 }
@@ -275,7 +275,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding-left: 8%;
+  padding-left: 15%;
   z-index: 10;
 }
 
