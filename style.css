@@ -143,7 +143,7 @@ body {
   color:#FF0000;
   text-align: center;
   position: absolute;
-  top: 15%;
+  top: 6%;
   left: 50%; 
   transform: translate(-50%, -50%);
 }
@@ -165,36 +165,29 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  
 }
 
 #LoginLabel {
   font-family: 'Amiri', sans-serif;
   font-size: 24px;
-  color: #7f0b0b;
+  opacity: 0.75;
+  color: #eee;
 }
 
-#username {
+#username, #password {
   padding: 6.5px;
   font-size: 18px;
-  border: 1.5px solid #7f0b0b;
-  background-color: rgb(30, 26, 26);
-  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
   width: 250px;
 }
 
-#password {
-  padding: 6.5px;
-  font-size: 18px;
-  background-color: rgb(30, 26, 26);
-  border: 1.5px solid #7f0b0b;
-  border-radius: 6px;
-  width: 250px;
-}
 
 #SignUpButton {
   font-family: 'Amiri', sans-serif;
   font-size: 16px;
-  color: rgb(30, 26, 26);
+  color: #eee;
   text-align: center;
   margin-top: 6px;
 }
@@ -205,14 +198,27 @@ body {
 
 #LoginButton {
   font-family: 'Amiri', sans-serif;
-  font-size: 18px;
-  color: #FFFFFF;
-  background-color: #7f0b0b;
-  border: 1px solid white;
-  border-radius: 7px;
-  padding: 6px;
+  text-decoration: none;
+  display: flex;
+  justify-self: center;
+  justify-content: center;
+  width: 30%;
+  border-radius: 10px;
+  border: none;
+  text-decoration: none;
+  background: linear-gradient(
+    to right,
+    #4b0000,
+    #8b0000,
+    #ff1a1a
+  );
+  color: #fff;
+  font-size: 1rem;
+  letter-spacing: 2px;
   cursor: pointer;
-  width: 200px;
+  box-shadow: 0 0 18px rgba(255, 0, 0, 0.28);
+  padding: 6px;
+  width: 180px;
   position: absolute;
   bottom: 8%;
   left: 50%;
@@ -220,7 +226,8 @@ body {
 }
 
 #LoginButton:hover {
-  background-color: #FF0000;
+  box-shadow: 0 0 26px rgba(255, 0, 0, 0.45);
+  color: #FF0000;
 }
 
 /*Style for Game Scenes*/
