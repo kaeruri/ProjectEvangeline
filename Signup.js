@@ -66,7 +66,19 @@ signupForm.addEventListener('submit', function(signupSubmissionEvent) {
 
     users[trimmedUsername] = { password: signupPassword };
     localStorage.setItem('users', JSON.stringify(users));
+
+    const saveKey = 'save_' + trimmedUsername;
+
+    if (!localStorage.getItem(saveKey)) {
+    const defaultSave = {
+        storyProgress: 0,
+        highestScore: 0,
+        fastestClearTimeMs: null
+    };
+
+    localStorage.setItem(saveKey, JSON.stringify(defaultSave));
+    }
+
     window.location.href = 'LoginPage.html';
 
 });
-
