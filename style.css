@@ -159,7 +159,7 @@ body {
 
 #LoginForm {
   position: absolute;
-  top: 53%;
+  top: 66%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
@@ -196,11 +196,14 @@ body {
   color: #FF0000;
 }
 
+#SignUpButton:active {
+  color: white;
+}
+
 #LoginButton {
   font-family: 'Amiri', sans-serif;
   text-decoration: none;
   display: flex;
-  justify-self: center;
   justify-content: center;
   width: 30%;
   border-radius: 10px;
@@ -219,15 +222,19 @@ body {
   box-shadow: 0 0 18px rgba(255, 0, 0, 0.28);
   padding: 6px;
   width: 180px;
-  position: absolute;
-  bottom: 8%;
-  left: 50%;
   transform: translate(-50%, -50%);
+  position: relative;
+  left: 50%;
+  margin-top: 250px;
 }
 
 #LoginButton:hover {
   box-shadow: 0 0 26px rgba(255, 0, 0, 0.45);
   color: #FF0000;
+}
+
+#LoginButton:active {
+  color: white;
 }
 
 /*Style for Game Scenes*/
