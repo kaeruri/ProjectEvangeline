@@ -51,30 +51,37 @@ body {
 }
 
 #StartingNavLinks {
-  font-family: 'Roboto', sans-serif;
-  list-style: none;
   gap: 50px;
-  font-size: 48px;
   text-align: center;
   position: absolute;
   display: flex;
   flex-direction: column;
   font-weight: 500;          
-  letter-spacing: 0.2em;     
-  text-transform: uppercase; 
   top: 65%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
  
-#StartingNavLinks a {
+#StartingNavLinks button {
+  font-weight: 500;  
+  letter-spacing: 0.2em;  
+  font-size: 48px;
+  font-family: 'Roboto', sans-serif;
+  text-transform: uppercase; 
   color: #7f0b0b;
   text-decoration: none;
+  background: none;
+  border: none;
+  outline: none;
   transition: color 0.3s ease;
 }
 
-#StartingNavLinks a:hover {
+#StartingNavLinks button:hover {
   color: #FF0000;
+}
+
+#StartingNavLinks button:active {
+  color: #000000;
 }
 
 /*Style for Leaderboard Page*/
