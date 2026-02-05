@@ -20,6 +20,21 @@ body {
   background: #000000;
 }
 
+.formError {
+  margin: 10px 0 18px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 0, 0, 0.35);
+  background: rgba(255, 0, 0, 0.10);
+  color: #ffd6d6;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.25);
+  font-family: 'Amiri', sans-serif;
+  display: flex;
+  justify-content: center;
+}
+
 
 /*Style for Starting Page*/
 
@@ -237,6 +252,7 @@ body {
   color: white;
 }
 
+
 /*Style for Game Scenes*/
 
 
@@ -317,22 +333,6 @@ body {
   justify-content: flex-start;
   padding-left: 15%;
   z-index: 10;
-}
-
-
-.formError {
-  margin: 10px 0 18px;
-  padding: 10px 12px;
-
-  border-radius: 10px;
-  border: 1px solid rgba(255, 0, 0, 0.35);
-  background: rgba(255, 0, 0, 0.10);
-
-  color: #ffd6d6;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-
-  text-shadow: 0 0 8px rgba(255, 0, 0, 0.25);
 }
 
 
