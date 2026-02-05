@@ -37,7 +37,7 @@ body {
 
 /*Animations*/
 
-#StartingTitle {
+#StartingTitle, #StartingNavLinks button {
   animation: glitchFlicker 3s infinite;
 }
 
@@ -71,6 +71,7 @@ body {
     text-shadow: none;
   }
 }
+
 
 
 #StartingTitle, #StartingNavLinks button {
