@@ -79,6 +79,6 @@ signupForm.addEventListener('submit', function(signupSubmissionEvent) {
     localStorage.setItem(saveKey, JSON.stringify(defaultSave));
     }
 
-    window.location.href = 'LoginPage.html';
+    window.location.href = 'index.html';
 
 });
