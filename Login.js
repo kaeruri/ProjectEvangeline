@@ -58,20 +58,14 @@ const gate = document.getElementById("audioGate");
 
 function unlockAudio() {
   bgm.play().catch(() => {});
-  sessionStorage.setItem("audioUnlocked", "true");
-
   if (gate) gate.style.display = "none";
 
   document.removeEventListener("click", unlockAudio);
   document.removeEventListener("keydown", unlockAudio);
 }
 
-// Only auto-play if unlocked THIS session
-if (sessionStorage.getItem("audioUnlocked") === "true") {
-  bgm.play().catch(() => {});
-  if (gate) gate.style.display = "none";
-} else {
-  document.addEventListener("click", unlockAudio);
-  document.addEventListener("keydown", unlockAudio);
-}
+// ALWAYS require a click
+document.addEventListener("click", unlockAudio);
+document.addEventListener("keydown", unlockAudio);
+
 
