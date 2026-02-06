@@ -10,61 +10,62 @@
   <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Mystery+Quest&family=Fredericka+the+Great&family=Shadows+Into+Light&display=swap" rel="stylesheet">
 </head>
 <body id="GameBody">
-  <div id="scene">
-    <img src="Assets/ProjectEvangelineBedroomPOV.png" id="GameBackground" alt="StartingBedroom">
+    <div id="scene">
+      <img src="Assets/ProjectEvangelineBedroomPOV.png" id="GameBackground" alt="StartingBedroom">
 
-    <div id="dialogueBox" class="hidden">
-      <p id="dialogueText">what time is it? why do i feel so dizzy?</p>
-      <p id="dialogueHint">(click anywhere to continue)</p>
-    </div>
+      <div id="dialogueBox" class="hidden">
+        <p id="dialogueText">what time is it? why do i feel so dizzy?</p>
+        <p id="dialogueHint">(click anywhere to continue)</p>
+      </div>
 
-    <div id="arrowSet" class="hidden">
-      <button id="arrowLeft" data-dir="left">◀</button>
-      <button id="arrowRight" data-dir="right">▶</button>
-      <button id="arrowForward" data-dir="forward">▲</button>
-      <button id="arrowBackward" data-dir="back">▼</button>
-    </div>
+      <div id="arrowSet" class="hidden">
+        <button id="arrowLeft" data-dir="left">◀</button>
+        <button id="arrowRight" data-dir="right">▶</button>
+        <button id="arrowForward" data-dir="forward">▲</button>
+        <button id="arrowBackward" data-dir="back">▼</button>
+      </div>
 
-    <button id="pauseButton">⏸</button>
+      <button id="pauseButton">⏸</button>
 
-    <div id="pauseOverlay" class="hidden">
-      <div id="pauseMenu">
-        <h2>PAUSED</h2>
-        <button id="resume">Continue</button>
-        <button id="restart">Restart</button>
-        <button id="quit">Quit</button>
+      <div id="pauseOverlay" class="hidden">
+        <div id="pauseMenu">
+          <h2>PAUSED</h2>
+          <button id="resume">Continue</button>
+          <button id="restart">Restart</button>
+          <button id="quit">Quit</button>
+        </div>
+      </div>
+
+      <div id="inventory">
+        <div class="invSlot"></div>
+        <div class="invSlot"></div>
+        <div class="invSlot"></div>
+        <div class="invSlot"></div>
       </div>
     </div>
+    <div id="hpbarsContainer">
+      <div class="playerHPgroup" id="playerHP">
+        <div class="HPlabel">YOU</div>
 
-    <div id="inventory">
-      <div class="invSlot"></div>
-      <div class="invSlot"></div>
-      <div class="invSlot"></div>
-      <div class="invSlot"></div>
+        <div class="playerHPbar">
+          <div id="playerHPfill" class="HPfill"></div>
+        </div>
+
+        <div id="playerHPtext" class="HPtext">100 / 100</div>
+      </div>
+
+      <div class="bossHPgroup hidden" id="bossHP">
+        <div id="bossHPlabel" class="HPlabel"></div>
+
+        <div class="bossHPbar">
+          <div id="bossHPfill" class="bossFill"><div id="bossHPtext" class="HPtext">50 / 50</div></div>
+        </div>
+
+        <div id="hotspots"></div>
+
+      </div>
     </div>
   </div>
-  <div id="hpbarsContainer">
-    <div class="playerHPgroup" id="playerHP">
-      <div class="HPlabel">YOU</div>
-
-      <div class="playerHPbar">
-        <div id="playerHPfill" class="HPfill"></div>
-      </div>
-
-      <div id="playerHPtext" class="HPtext">100 / 100</div>
-    </div>
-
-    <div class="bossHPgroup hidden" id="bossHP">
-      <div id="bossHPlabel" class="HPlabel"></div>
-
-      <div class="bossHPbar">
-        <div id="bossHPfill" class="bossFill"><div id="bossHPtext" class="HPtext">50 / 50</div></div>
-      </div>
-
-      <div id="hotspots"></div>
-
-    </div>
-  </div>
-</div>
+  <script src="Game.js"></script>
 </body>
 </html>

@@ -56,27 +56,38 @@ loginForm.addEventListener('submit', function (loginSubmissionEvent) {
 const bgm = new Audio("Audios/SleepForeverBGM.mp3");
 bgm.loop = true;
 bgm.volume = 0.35;
+bgm.preload = "auto";
 
 const gate = document.getElementById("audioGate");
 
 function unlockAudio() {
-  bgm.play().catch(() => {});
+  bgm.play().then(() => {
+    // Only “commit” after audio really starts
+    sessionStorage.setItem("audioUnlocked", "true");
+    if (gate) gate.style.display = "none";
 
-  sessionStorage.setItem("audioUnlocked", "true");
-
-  if (gate) gate.style.display = "none";
-
-  document.removeEventListener("click", unlockAudio);
-  document.removeEventListener("keydown", unlockAudio);
-  document.removeEventListener("touchstart", unlockAudio);
+    document.removeEventListener("mousedown", unlockAudio);
+    document.removeEventListener("click", unlockAudio);
+    document.removeEventListener("keydown", unlockAudio);
+    document.removeEventListener("touchstart", unlockAudio);
+  }).catch(() => {
+    // If it failed, DO NOT hide the gate or remove listeners
+    // User can click again and it will retry
+  });
 }
 
-// If already unlocked this session, try to play + hide gate
 if (sessionStorage.getItem("audioUnlocked") === "true") {
-  bgm.play().catch(() => {});
+  bgm.play().catch(() => {
+    // If autoplay fails, show gate again and wait for gesture
+    if (gate) gate.style.display = "flex";
+    document.addEventListener("mousedown", unlockAudio);
+    document.addEventListener("click", unlockAudio);
+    document.addEventListener("keydown", unlockAudio);
+    document.addEventListener("touchstart", unlockAudio, { passive: true });
+  });
   if (gate) gate.style.display = "none";
 } else {
-  // Need user gesture first
+  document.addEventListener("mousedown", unlockAudio);
   document.addEventListener("click", unlockAudio);
   document.addEventListener("keydown", unlockAudio);
   document.addEventListener("touchstart", unlockAudio, { passive: true });
