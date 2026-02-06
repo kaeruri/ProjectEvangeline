@@ -50,7 +50,7 @@ loginForm.addEventListener('submit', function (loginSubmissionEvent) {
 
 //BGM
 
-const bgm = new Audio("assets/audio/login_bgm.mp3");
+const bgm = new Audio("Audios/SleepForeverBGM.mp3");
 bgm.loop = true;
 bgm.volume = 0.35;
 
