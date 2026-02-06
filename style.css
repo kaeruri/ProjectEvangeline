@@ -652,7 +652,6 @@ body {
 #arrowSet {
   position: absolute;
   inset: 0;     
-  z-index: 10;
 }
 
 
@@ -674,6 +673,7 @@ body {
   bottom: 30%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 30;
 }
 
 
@@ -697,6 +697,7 @@ body {
   bottom: 20%;
   left: 15%;
   transform: translate(-50%, -50%);
+  z-index: 30;
 }
 
 #arrowRight {
@@ -719,6 +720,7 @@ body {
   bottom: 20%;
   right: 15%;
   transform: translate(-50%, -50%);
+  z-index: 30;
 }
 
 #arrowBackward {
@@ -741,6 +743,7 @@ body {
   bottom: 5%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 30;
 }
 
 #arrowForward:hover,
@@ -781,7 +784,7 @@ body {
     0 0 12px rgba(255, 0, 0, 0.5),
     0 0 20px rgba(255, 0, 0, 0.3);
   -webkit-tap-highlight-color: transparent;
-  z-index: 10;
+  z-index: 50;
 }
 
 #pauseButton:hover {
@@ -1057,12 +1060,15 @@ body {
   background: transparent;
   border: none;
   cursor: pointer;
-}
-
-
-.hotspot {
   background: rgba(255, 0, 0, 0.25);
   outline: 2px solid red;
+  transform-origin: center;
+}
+
+#overlay{
+  position: absolute;
+  inset: 0;
+  z-index: 100;
 }
 
 .hidden {
