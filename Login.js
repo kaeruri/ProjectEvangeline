@@ -50,29 +50,28 @@ loginForm.addEventListener('submit', function (loginSubmissionEvent) {
 
 //BGM
 
-const bgm = new Audio("Audios/SleepForeverBGM.mp3");
+const bgm = new Audio("assets/audio/login_bgm.mp3");
 bgm.loop = true;
-bgm.volume = 0.4;
+bgm.volume = 0.35;
 
 const gate = document.getElementById("audioGate");
 
 function unlockAudio() {
   bgm.play().catch(() => {});
-  localStorage.setItem("audioUnlocked", "true");
+  sessionStorage.setItem("audioUnlocked", "true");
 
-  // hide gate
   if (gate) gate.style.display = "none";
 
-  // remove listener so it doesn't re-run
   document.removeEventListener("click", unlockAudio);
   document.removeEventListener("keydown", unlockAudio);
 }
 
-// If already unlocked from a previous page/session, skip the gate
-if (localStorage.getItem("audioUnlocked") === "true") {
+// Only auto-play if unlocked THIS session
+if (sessionStorage.getItem("audioUnlocked") === "true") {
   bgm.play().catch(() => {});
   if (gate) gate.style.display = "none";
 } else {
   document.addEventListener("click", unlockAudio);
   document.addEventListener("keydown", unlockAudio);
 }
+
