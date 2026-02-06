@@ -81,5 +81,3 @@ if (sessionStorage.getItem("audioUnlocked") === "true") {
   document.addEventListener("keydown", unlockAudio);
   document.addEventListener("touchstart", unlockAudio, { passive: true });
 }
-
-
