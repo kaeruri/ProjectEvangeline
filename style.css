@@ -37,53 +37,86 @@ body {
 
 /*Animations*/
 
-#StartingTitle, #StartingNavLinks button {
-  animation: glitchFlicker 3s infinite;
+/* FLICKERING DISTORTION HORROR */
+
+
+.flickerDistort{
+  animation: signalFlicker 3s infinite;
+  will-change: opacity, filter, text-shadow;
 }
 
-@keyframes glitchFlicker {
-  0%, 100% {
+/* Irregular, broken-signal flicker */
+@keyframes signalFlicker{
+  0%, 86%, 100%{
     opacity: 1;
+    filter: none;
     text-shadow: none;
   }
 
-  20% {
-    opacity: 0.7;
+  /* micro flickers */
+  87%{
+    opacity: 0.75;
+    filter: blur(0.4px) contrast(1.3);
+  }
+
+  88%{
+    opacity: 1;
+    filter: none;
+  }
+
+  89%{
+    opacity: 0.6;
+    filter: blur(0.8px) contrast(1.6);
     text-shadow:
-      2px 0 red,
-     -2px 0 darkred;
+      -2px 0 rgba(255,0,0,0.35),
+       2px 0 rgba(255,0,0,0.2);
   }
 
-  21% {
+  90%{
     opacity: 1;
-    text-shadow: none;
+    filter: none;
   }
 
-  60% {
-    opacity: 0.5;
+  /* hard flicker */
+  91%{
+    opacity: 0.35;
+    filter: blur(1.8px) contrast(2.3);
     text-shadow:
-      -1px 0 crimson,
-       1px 0 black;
+      -5px 0 rgba(255,0,0,0.5),
+       5px 0 rgba(255,0,0,0.3);
   }
 
-  61% {
+  92%{
     opacity: 1;
-    text-shadow: none;
+    filter: none;
+  }
+
+  /* aftershock */
+  93%{
+    opacity: 0.85;
+    filter: blur(0.5px);
   }
 }
 
-
-
-#StartingTitle, #StartingNavLinks button {
-  letter-spacing: 6px;
-  transition: 180ms ease;
+#StartingNavLinks button{
+  background: none;
+  border: none;
+  color: inherit;
   cursor: pointer;
+  display: inline-block;
+
+  transition:
+    transform 0.12s ease-out,
+    text-shadow 0.12s ease-out,
+    filter 0.12s ease-out,
+    opacity 0.12s ease-out;
 }
 
-#StartingNavLinks button:hover {
-  letter-spacing: 9px;
-  text-shadow: 0 0 10px rgba(255,0,0,0.35);
-  transform: translateY(-1px);
+#StartingNavLinks button.pop{
+  transform: scale(1.08);
+  filter: brightness(1.15);
+  text-shadow: 0 0 10px rgba(255,0,0,0.45);
+  opacity: 1;
 }
 
 
@@ -1005,3 +1038,4 @@ body {
 .hidden {
   display: none !important ;
 }
+

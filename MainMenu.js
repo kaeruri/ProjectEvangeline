@@ -20,3 +20,24 @@ const leaderboardPage = document.querySelector('#leaderboard-button');
 leaderboardPage.addEventListener('click', function () {
     window.location.href = 'LeaderboardPage.html';
 });
+
+
+//Animations
+
+document.addEventListener("DOMContentLoaded", () => {
+  const menuButtons = document.querySelectorAll("#StartingNavLinks button");
+
+  menuButtons.forEach(button => {
+    button.addEventListener("mouseenter", () => {
+      button.classList.add("pop");
+    });
+
+    button.addEventListener("mouseleave", () => {
+      button.classList.remove("pop");
+    });
+  });
+});
+
+console.log(document.querySelectorAll("#StartingNavLinks button"));
+
+
