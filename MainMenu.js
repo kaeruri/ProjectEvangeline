@@ -8,11 +8,13 @@ const saveData = JSON.parse(localStorage.getItem(saveKey));
 
 const storyMode = document.querySelector('#story-mode-button');
 storyMode.addEventListener('click', function () {
+    localStorage.setItem("gameMode", "story")
     window.location.href = 'Game.html';
 });
 
 const survivalMode = document.querySelector('#survival-mode-button');
 survivalMode.addEventListener('click', function () {
+    localStorage.setItem("gameMode", "survival")
     window.location.href = 'Game.html';
 });
 
