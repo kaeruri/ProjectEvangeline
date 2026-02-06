@@ -1,68 +1,66 @@
-const storyRooms = {
-
-    startingBedroom: {
-        bg: "Assets/ProjectEvangelineBedroomPOV.png",
-        exits: {
-            left: "livingRoom"}
-    },
-
-    livingRoom: {
-        bg: "Assets/ProjectEvangelineLivingRoom.png",
-        exits: {
-            back: "startingBedroom",
-            left: "diningArea",
-            right: "exitHallway"
-        }
-    },
-
-    diningArea: {
-        bg: "Assets/ProjectEvangelineDiningArea.png",
-        exits: {
-            left: "kitchen",
-            right: "livingRoom"
-        }
-    },
-
-    kitchen: {
-        bg: "Assets/ProjectEvangelineKitchen.png",
-        exits: {
-            back: "diningArea",
-            right: "toilet"
-        }
-    },
-
-    toilet: {
-        bg: "ProjectEvangelineToilet.png",
-        exits: {
-            left: "kitchen"
-        }
-    },
-
-    exitHallway: {
-        bg: "ProjectEvangelineExit.png",
-        exits: {
-            left: "livingRoom",
-            right: "parentsBedroom",
-            forward: "EXIT"
-        }
-    },
-
-    parentsBedroom: {
-        bg: "ProjectEvangelineParentsBedroom.png",
-        exits: {
-            back: "exitHallway"
-        }
-    }
-
-};
-
-
-
-
 
 const mode = localStorage.getItem("gameMode");
 
 if (mode === "story") {
+    const storyRooms = {
+
+        startingBedroom: {
+            bg: "Assets/ProjectEvangelineBedroomPOV.png",
+            exits: {
+                left: "livingRoom"}
+        },
+
+        livingRoom: {
+            bg: "Assets/ProjectEvangelineLivingRoom.png",
+            exits: {
+                back: "startingBedroom",
+                left: "diningArea",
+                right: "exitHallway"
+            }
+        },
+
+        diningArea: {
+            bg: "Assets/ProjectEvangelineDiningArea.png",
+            exits: {
+                left: "kitchen",
+                right: "livingRoom"
+            }
+        },
+
+        kitchen: {
+            bg: "Assets/ProjectEvangelineKitchen.png",
+            exits: {
+                back: "diningArea",
+                right: "toilet"
+            }
+        },
+
+        toilet: {
+            bg: "ProjectEvangelineToilet.png",
+            exits: {
+                left: "kitchen"
+            }
+        },
+
+        exitHallway: {
+            bg: "ProjectEvangelineExit.png",
+            exits: {
+                left: "livingRoom",
+                right: "parentsBedroom",
+                forward: "EXIT"
+            }
+        },
+
+        parentsBedroom: {
+            bg: "ProjectEvangelineParentsBedroom.png",
+            exits: {
+                back: "exitHallway"
+            }
+        }
+
+    };
+
+    
 
 }
 
