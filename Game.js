@@ -90,9 +90,9 @@ if (mode === "story") {
       }
 
       if (currentRoom.exits["back"]) {
-        backArrow.classList.add("hidden");
-      } else {
         backArrow.classList.remove("hidden");
+      } else {
+        backArrow.classList.add("hidden");
       }
 
       if (currentRoom.exits["forward"]) {
