@@ -7,7 +7,8 @@ if (mode === "story") {
         startingBedroom: {
             bg: "Assets/ProjectEvangelineBedroomPOV.png",
             exits: {
-                left: "livingRoom"}
+                left: "livingRoom"
+            }
         },
 
         livingRoom: {
@@ -46,8 +47,7 @@ if (mode === "story") {
             bg: "Assets/ProjectEvangelineExit.png",
             exits: {
                 left: "livingRoom",
-                right: "parentsBedroom",
-                forward: "EXIT"
+                right: "parentsBedroom"
             }
         },
 
@@ -59,7 +59,8 @@ if (mode === "story") {
         },
 
         EXIT: {
-            bg: "Assets/ProjectEvangelineLogin.png"
+            bg: "Assets/ProjectEvangelineLogin.png",
+            exits: {}
         }
 
 
@@ -67,7 +68,6 @@ if (mode === "story") {
 
     const currentBGimg = document.querySelector('#GameBackground');
     let currentRoomID = "startingBedroom"
-    currentBGimg.src = storyRooms[currentRoomID].bg;
 
     function updateArrows() {
       const currentRoom = storyRooms[currentRoomID];
@@ -78,27 +78,27 @@ if (mode === "story") {
       let forwardArrow = document.querySelector("#arrowForward");
 
       if (currentRoom.exits["left"]) {
-        leftArrow.classList.remove("hidden");
+          leftArrow.classList.remove("hidden");
       } else {
-        leftArrow.classList.add("hidden");
+          leftArrow.classList.add("hidden");
       }
 
       if (currentRoom.exits["right"]) {
-        rightArrow.classList.remove("hidden");
+          rightArrow.classList.remove("hidden");
       } else {
-        rightArrow.classList.add("hidden");
+          rightArrow.classList.add("hidden");
       }
 
       if (currentRoom.exits["back"]) {
-        backArrow.classList.remove("hidden");
+          backArrow.classList.remove("hidden");
       } else {
-        backArrow.classList.add("hidden");
+          backArrow.classList.add("hidden");
       }
 
       if (currentRoom.exits["forward"]) {
-        forwardArrow.classList.remove("hidden");
+          forwardArrow.classList.remove("hidden");
       } else {
-        forwardArrow.classList.add("hidden");
+          forwardArrow.classList.add("hidden");
       }
     }
 
