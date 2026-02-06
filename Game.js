@@ -117,6 +117,14 @@ if (mode === "story") {
 
     if (!nextRoomID) return;
 
+    walkSFX.currentTime = 0;
+    walkSFX.play();
+
+    setTimeout(() => {
+      walkSFX.pause();
+      walkSFX.currentTime = 0;
+    }, 2150);
+
     currentRoomID = nextRoomID;
     renderRoom();
     });
@@ -127,6 +135,15 @@ if (mode === "story") {
         const nextRoomID = currentRoom.exits.right;
 
         if (!nextRoomID) return;
+
+        walkSFX.currentTime = 0;
+        walkSFX.play();
+
+        setTimeout(() => {
+          walkSFX.pause();
+          walkSFX.currentTime = 0;
+        }, 2150);
+
         currentRoomID = nextRoomID
         renderRoom();
     });
@@ -137,6 +154,14 @@ if (mode === "story") {
         const nextRoomID = currentRoom.exits.back;
 
         if (!nextRoomID) return;
+
+        walkSFX.currentTime = 0;
+        walkSFX.play();
+
+        setTimeout(() => {
+          walkSFX.pause();
+          walkSFX.currentTime = 0;
+        }, 2150);
 
         currentRoomID = nextRoomID
         renderRoom();
@@ -155,6 +180,10 @@ if (mode === "story") {
 
 }
 
+//SFX
+
+const walkSFX = new Audio("Audios/Walkingsfx.mp3");
+walkSFX.volume = 0.6;
 
 //BGM
 
