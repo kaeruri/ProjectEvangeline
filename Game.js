@@ -36,14 +36,14 @@ if (mode === "story") {
         },
 
         toilet: {
-            bg: "ProjectEvangelineToilet.png",
+            bg: "Assets/ProjectEvangelineToilet.png",
             exits: {
                 left: "kitchen"
             }
         },
 
         exitHallway: {
-            bg: "ProjectEvangelineExit.png",
+            bg: "Assets/ProjectEvangelineExit.png",
             exits: {
                 left: "livingRoom",
                 right: "parentsBedroom",
@@ -52,15 +52,106 @@ if (mode === "story") {
         },
 
         parentsBedroom: {
-            bg: "ProjectEvangelineParentsBedroom.png",
+            bg: "Assets/ProjectEvangelineParentsBedroom.png",
             exits: {
                 back: "exitHallway"
             }
+        },
+
+        EXIT: {
+            bg: "Assets/ProjectEvangelineLogin.png"
         }
+
 
     };
 
-    
+    const currentBGimg = document.querySelector('#GameBackground');
+    let currentRoomID = "startingBedroom"
+    currentBGimg.src = storyRooms[currentRoomID].bg;
+
+    function updateArrows() {
+      const currentRoom = storyRooms[currentRoomID];
+
+      let leftArrow = document.querySelector("#arrowLeft");
+      let rightArrow = document.querySelector("#arrowRight");
+      let backArrow = document.querySelector("#arrowBackward");
+      let forwardArrow = document.querySelector("#arrowForward");
+
+      if (currentRoom.exits["left"]) {
+        leftArrow.classList.remove("hidden");
+      } else {
+        leftArrow.classList.add("hidden");
+      }
+
+      if (currentRoom.exits["right"]) {
+        rightArrow.classList.remove("hidden");
+      } else {
+        rightArrow.classList.add("hidden");
+      }
+
+      if (currentRoom.exits["back"]) {
+        backArrow.classList.add("hidden");
+      } else {
+        backArrow.classList.remove("hidden");
+      }
+
+      if (currentRoom.exits["forward"]) {
+        forwardArrow.classList.remove("hidden");
+      } else {
+        forwardArrow.classList.add("hidden");
+      }
+    }
+
+    function renderRoom() {
+      const currentRoom = storyRooms[currentRoomID];
+      currentBGimg.src = currentRoom.bg;
+      updateArrows();
+    }
+
+    renderRoom();
+
+    const leftArrow = document.querySelector("#arrowLeft");
+    leftArrow.addEventListener("click", () => {
+    const currentRoom = storyRooms[currentRoomID];
+    const nextRoomID = currentRoom.exits.left;
+
+    if (!nextRoomID) return;
+
+    currentRoomID = nextRoomID;
+    renderRoom();
+    });
+
+    const rightArrow = document.querySelector("#arrowRight")
+    rightArrow.addEventListener("click", () => {
+        const currentRoom = storyRooms[currentRoomID];
+        const nextRoomID = currentRoom.exits.right;
+
+        if (!nextRoomID) return;
+        currentRoomID = nextRoomID
+        renderRoom();
+    });
+
+    const backArrow = document.querySelector("#arrowBackward")
+    backArrow.addEventListener("click", () => {
+        const currentRoom = storyRooms[currentRoomID];
+        const nextRoomID = currentRoom.exits.back;
+
+        if (!nextRoomID) return;
+
+        currentRoomID = nextRoomID
+        renderRoom();
+    });
+
+    const forwardArrow = document.querySelector("#arrowForward")
+    forwardArrow.addEventListener("click", () => {
+        const currentRoom = storyRooms[currentRoomID];
+        const nextRoomID = currentRoom.exits.forward;
+
+        if (!nextRoomID) return;
+
+        currentRoomID = nextRoomID
+        renderRoom();
+    });
 
 }
 
