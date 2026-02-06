@@ -45,7 +45,10 @@ loginForm.addEventListener('submit', function (loginSubmissionEvent) {
 
     localStorage.setItem('currentUser', trimmedUsername);
 
-    window.location.href = 'MainMenu.html';
+    bgm.pause();
+    bgm.currentTime = 0;
+    window.location.href = "MainMenu.html";
+
 });
 
 //BGM
@@ -58,14 +61,25 @@ const gate = document.getElementById("audioGate");
 
 function unlockAudio() {
   bgm.play().catch(() => {});
+
+  sessionStorage.setItem("audioUnlocked", "true");
+
   if (gate) gate.style.display = "none";
 
   document.removeEventListener("click", unlockAudio);
   document.removeEventListener("keydown", unlockAudio);
+  document.removeEventListener("touchstart", unlockAudio);
 }
 
-// ALWAYS require a click
-document.addEventListener("click", unlockAudio);
-document.addEventListener("keydown", unlockAudio);
+// If already unlocked this session, try to play + hide gate
+if (sessionStorage.getItem("audioUnlocked") === "true") {
+  bgm.play().catch(() => {});
+  if (gate) gate.style.display = "none";
+} else {
+  // Need user gesture first
+  document.addEventListener("click", unlockAudio);
+  document.addEventListener("keydown", unlockAudio);
+  document.addEventListener("touchstart", unlockAudio, { passive: true });
+}
 
 
