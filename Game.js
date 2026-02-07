@@ -110,11 +110,11 @@ const Rooms = {
             width: 9,
             height: 7.5,
             items: [{
-                id: "knife",
-                img: "Assets/ProjectEvangelineKnife.png",
-                left: 10,
-                top: 10,
-                width: 30
+                id: "needle",
+                img: "Assets/ProjectEvangelineNeedle.png",
+                left: 35,
+                top: 68,
+                width: 15
             }]
         },
         {   id: "Dcabinet2",
@@ -215,7 +215,14 @@ const Rooms = {
             top: 46,
             width: 10,
             height: 4,
-            rotate: -4
+            rotate: -4,
+            items: [{
+                id: "knife",
+                img: "Assets/ProjectEvangelineKnife.png",
+                left: 53,
+                top: 20,
+                width: 20
+            }]
 
         },
         {   id: "Kdrawer2",
@@ -240,7 +247,20 @@ const Rooms = {
             top: 55.5,
             width: 10,
             height: 21,
-            rotate: 14
+            rotate: 14,
+            items:[{
+                id: "bandages",
+                img: "Assets/ProjectEvangelineBandages.png",
+                left: 51,
+                top: 63,
+                width: 20
+            },
+            {   id: "medkit",
+                img: "Assets/ProjectEvangelineMedkit.png",
+                left: 30,
+                top: 60,
+                width: 20
+            }]
         },
         {
             id: "Tdrawer1",
@@ -273,7 +293,14 @@ const Rooms = {
             top: 49.5,
             width: 4,
             height: 3,
-            rotate: -4
+            rotate: -4,
+            items: [{
+                id: "key",
+                img: "Assets/keyreplacement.png",
+                left: 53,
+                top: 20,
+                width: 15
+            }]
         },
         {   id: "Pdrawer2",
             overlay: "drawer",
