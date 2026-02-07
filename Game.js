@@ -9,7 +9,7 @@ const Rooms = {
             left: {}
         },
         hotspots: [{
-            id: "drawerR1",
+            id: "SdrawerR1",
             overlay: "drawer",
             left: 84,
             top: 62,
@@ -18,7 +18,7 @@ const Rooms = {
             rotate: 22
         },
         {
-            id: "drawerL1",
+            id: "SdrawerL1",
             overlay: "drawer",
             left: 22,
             top: 43,
@@ -26,7 +26,7 @@ const Rooms = {
             height: 5,
             rotate: 165
         },
-        {   id: "drawerL2",
+        {   id: "SdrawerL2",
             overlay: "drawer",
             left: 22,
             top: 50,
@@ -34,7 +34,7 @@ const Rooms = {
             height: 4,
             rotate: 160
         },
-        {   id: "drawerL3",
+        {   id: "SdrawerL3",
             overlay: "drawer",
             left: 22,
             top: 56,
@@ -42,7 +42,7 @@ const Rooms = {
             height: 4.5,
             rotate: 155
         },
-        {   id: "drawerR2",
+        {   id: "SdrawerR2",
             overlay: "drawer",
             left: 76,
             top: 62.5,
@@ -51,7 +51,7 @@ const Rooms = {
             rotate: 27
         },
         {
-            id: "drawerR3",
+            id: "SdrawerR3",
             overlay: "drawer",
             left: 77,
             top: 39.5,
@@ -59,7 +59,7 @@ const Rooms = {
             height: 3,
             rotate: 12
         },
-        {   id: "drawerR4",
+        {   id: "SdrawerR4",
             overlay: "drawer",
             left: 89,
             top: 44,
@@ -76,7 +76,24 @@ const Rooms = {
             back: {},
             left: {},
             right: {}
-        }
+        },
+        hotspots:[{
+            id: "LcabinetL1",
+            overlay: "cabinet",
+            left: 15.5,
+            top: 58,
+            width: 5,
+            height: 9,
+            rotate: -14
+        },
+        {   id:"LcabinetL2",
+            overlay: "cabinet",
+            left: 21,
+            top: 55,
+            width: 4,
+            height: 9,
+            rotate: -14 
+        }]
     },
 
     diningArea: {
@@ -84,7 +101,58 @@ const Rooms = {
         exits: {
             left: {},
             right: {}
-        }
+        },
+        hotspots: [{
+            id: "Dcabinet1",
+            overlay: "cabinet",
+            left: 43.75,
+            top: 11,
+            width: 9,
+            height: 7.5
+        },
+        {   id: "Dcabinet2",
+            overlay: "cabinet",
+            left: 35.5,
+            top: 11,
+            width: 7,
+            height: 12
+        },
+        {   id: "Dcabinet3",
+            overlay: "cabinet",
+            left: 54,
+            top: 11,
+            width: 7,
+            height: 12
+        },
+        {   id: "Ddrawer1",
+            overlay: "drawer",
+            left: 48.5,
+            top: 35.5,
+            width: 5,
+            height: 3
+        },
+        {   id: "Ddrawer2",
+            overlay: "drawer",
+            left: 60.5,
+            top: 35.5,
+            width: 5,
+            height: 3
+        },
+        {   id: "Ddrawer3",
+            overlay: "drawer",
+            left: 37.5,
+            top: 35.5,
+            width: 5.5,
+            height: 3
+        },
+        {   id: "Ddrawer4",
+            overlay: "drawer",
+            left: 29.5,
+            top: 36,
+            width: 3.5,
+            height: 2.5,
+            rotate: -7
+        }]
     },
 
     kitchen: {
@@ -92,14 +160,90 @@ const Rooms = {
         exits: {
             back: {},
             right: {}
-        }
+        },
+        hotspots: [{
+            id: "Kcabinet1",
+            overlay: "cabinet",
+            left: 10,
+            top: 10,
+            width: 9,
+            height: 18,
+            rotate: 1
+        },
+        {   id: "Kcabinet2",
+            overlay: "cabinet",
+            left: 31.5,
+            top: 12,
+            width: 5,
+            height: 18,
+            rotate: 1.5
+        },
+        {   id: "Kcabinet3",
+            overlay: "cabinet",
+            left: 45,
+            top: 14,
+            width: 8,
+            height: 15,
+            rotate: -1
+        },
+        {   id: "Kcabinet4",
+            overlay: "cabinet",
+            left: 49,
+            top: 48,
+            width: 10,
+            height: 20,
+            rotate: 4
+        },
+        {   id: "Kcabinet5",
+            overlay: "cabinet",
+            left: 13,
+            top: 52,
+            width: 10,
+            height: 10,
+            rotate: -5
+        },
+        {   id: "Kdrawer1",
+            overlay: "drawer",
+            left: 13,
+            top: 46,
+            width: 10,
+            height: 4,
+            rotate: -4
+
+        },
+        {   id: "Kdrawer2",
+            overlay: "drawer",
+            left: 37,
+            top: 44.5,
+            width: 3.5,
+            height: 3,
+            rotate: 4
+        }]
     },
 
     toilet: {
         bg: "Assets/ProjectEvangelineToilet.png",
         exits: {
             left: {}
-        }
+        },
+        hotspots: [{
+            id: "Tcabinet1",
+            overlay: "cabinet",
+            left: 53.5,
+            top: 55.5,
+            width: 10,
+            height: 21,
+            rotate: 14
+        },
+        {
+            id: "Tdrawer1",
+            overlay: "drawer",
+            left: 65.5,
+            top: 60,
+            width: 7,
+            height: 5,
+            rotate: 14
+        }]
     },
 
     exitHallway: {
@@ -114,7 +258,40 @@ const Rooms = {
         bg: "Assets/ProjectEvangelineParentsBedroom.png",
         exits: {
             back: {}
-        }
+        },
+        hotspots: [{
+            id: "Pdrawer1",
+            overlay: "drawer",
+            left: 19.5,
+            top: 49.5,
+            width: 4,
+            height: 3,
+            rotate: -4
+        },
+        {   id: "Pdrawer2",
+            overlay: "drawer",
+            left: 19.5,
+            top: 54,
+            width: 4,
+            height: 3,
+            rotate: -4
+        },
+        {   id: "Pdrawer3",
+            overlay: "drawer",
+            left: 19.5,
+            top: 58,
+            width: 4,
+            height: 3,
+            rotate: -4
+        },
+        {   id: "Pdrawer4",
+            overlay: "drawer",
+            left: 57,
+            top: 46,
+            width: 4,
+            height: 2.5,
+            rotate: -4.5
+        }]
     },
 
     EXIT: {
