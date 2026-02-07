@@ -108,7 +108,14 @@ const Rooms = {
             left: 43.75,
             top: 11,
             width: 9,
-            height: 7.5
+            height: 7.5,
+            items: [{
+                id: "knife",
+                img: "Assets/ProjectEvangelineKnife.png",
+                left: 10,
+                top: 10,
+                width: 30
+            }]
         },
         {   id: "Dcabinet2",
             overlay: "cabinet",
@@ -342,21 +349,78 @@ function updateArrows() {
 
 const overlay = document.querySelector("#overlay");
 const overlayImage = document.querySelector("#overlayImage");
+const overlayItems = document.querySelector("#overlayItems");
+
+// TEMP SAVE (story mode testing)
+let save = JSON.parse(localStorage.getItem("save_story")) || {
+  inventory: [],
+  collected: {}
+};
+
+function saveGame() {
+  localStorage.setItem("save_story", JSON.stringify(save));
+}
+
+function collectItem(item) {
+  // mark as collected so it doesn't respawn
+  save.collected[item.id] = true;
+
+  // add to inventory (simple version for now)
+  save.inventory.push({
+    id: item.id,
+    img: item.img
+  });
+
+  saveGame();
+}
 
 const overlayImages = {
   drawer: "Assets/ProjectEvangelineDrawer.png",
   cabinet: "Assets/ProjectEvangelineCabinet.png"
 };
 
-function openOverlay(imageSrc) {
+function renderOverlayItems(hotspot) {
+  overlayItems.innerHTML = "";
+
+  if (!hotspot?.items) return;
+
+  save.collected = save.collected || {};
+
+  hotspot.items.forEach(item => {
+    if (save.collected[item.id]) return;
+
+    const img = document.createElement("img");
+    img.src = item.img;
+    img.classList.add("overlay-item");
+
+    img.style.left = item.left + "%";
+    img.style.top = item.top + "%";
+    img.style.width = item.width + "%";
+
+    img.addEventListener("click", (e) => {
+      e.stopPropagation();
+      collectItem(item);
+      img.remove();
+    });
+
+    overlayItems.appendChild(img);
+  });
+}
+
+
+function openOverlay(imageSrc, hotspot) {
   overlayImage.src = imageSrc;
   overlay.classList.remove("hidden");
+  renderOverlayItems(hotspot);
 }
+
 
 function closeOverlay() {
   overlay.classList.add("hidden");
   overlayImage.src = "";
+  overlayItems.innerHTML = "";
 }
+
 
 overlay.addEventListener("click", closeOverlay);
 
@@ -381,13 +445,23 @@ function renderHotspots() {
     hotspotDiv.addEventListener("click", () => {
       const imageSrc = overlayImages[hotspot.overlay];
       if (!imageSrc) return;
-      openOverlay(imageSrc);
+      openOverlay(imageSrc, hotspot);
     });
 
     hotspotsContainer.appendChild(hotspotDiv);
   });
 
 }
+
+//clear hotspots
+function clearAllHotspotItems() {
+  for (const room of Object.values(Rooms)) {
+    room.hotspots?.forEach(h => delete h.items);
+  }
+}
+
+
+
 
 
 //changing rooms
@@ -496,6 +570,13 @@ if (mode === "story") {
         currentRoomID = nextRoomID
         renderRoom();
     });
+
+}
+
+if (mode === "survival") {
+    if (mode === "arcade") {
+  clearAllHotspotItems();
+}
 
 }
 

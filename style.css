@@ -1065,11 +1065,48 @@ body {
   transform-origin: center;
 }
 
-#overlay{
+
+/*items*/
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+#overlayImage {
   position: absolute;
   inset: 0;
-  z-index: 100;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 1;
 }
+
+#overlayItems {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+
+.overlay-item {
+  position: absolute;
+  cursor: pointer;
+}
+.overlay-item {
+  position: absolute;
+  cursor: pointer;
+  border: 2px solid red; /* DEBUG */
+  background: rgba(255, 0, 0, 0.2); /* DEBUG */
+}
+
+
+
+.overlay-item:hover {
+  filter: brightness(1.1);
+}
+
 
 .hidden {
   display: none !important ;
