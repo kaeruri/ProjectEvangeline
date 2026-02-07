@@ -335,6 +335,33 @@ const Rooms = {
 
 };
 
+//items
+
+const ITEM_EFFECTS = {
+  bandages: {
+    type: "heal",
+    heal: 15
+  },
+  medkit: {
+    type: "heal",
+    heal: 30
+  },
+  injection: {
+    type: "heal",
+    heal: 50
+  },
+
+  knife: {
+    type: "weapon",
+    damage: 20
+  },
+  needle: {
+    type: "weapon",
+    damage: 30
+  }
+};
+
+
 const currentBGimg = document.querySelector('#GameBackground');
 let currentRoomID = "startingBedroom"
 
@@ -372,34 +399,158 @@ function updateArrows() {
   }
 }
 
-//hotspots
-
-const overlay = document.querySelector("#overlay");
-const overlayImage = document.querySelector("#overlayImage");
-const overlayItems = document.querySelector("#overlayItems");
-
-// TEMP SAVE (story mode testing)
+//inventory
 let save = JSON.parse(localStorage.getItem("save_story")) || {
   inventory: [],
-  collected: {}
+  collected: {},
+  equippedSlot: null
 };
+
+save.inventory = save.inventory || [];
+if (save.equippedSlot === undefined) save.equippedSlot = null;
+save.collected = save.collected || {};
+
 
 function saveGame() {
   localStorage.setItem("save_story", JSON.stringify(save));
 }
 
 function collectItem(item) {
-  // mark as collected so it doesn't respawn
+  if (save.collected[item.id]) return;
+
+  if (save.inventory.length >= 4) {
+    showToast("Inventory full");
+    return;
+  }
+
+  const def = ITEM_EFFECTS[item.id];
+  if (!def) {
+    console.warn("No ITEM_EFFECTS entry for", item.id);
+    return;
+  }
+
   save.collected[item.id] = true;
 
-  // add to inventory (simple version for now)
   save.inventory.push({
     id: item.id,
-    img: item.img
+    img: item.img,
+    type: def.type,
+    heal: def.heal,
+    damage: def.damage
   });
 
   saveGame();
+  renderInventory();
+  showToast("Item picked up");
 }
+
+
+//toast
+const toast = document.querySelector("#toast");
+let toastTimer = null;
+
+function showToast(message, ms = 900) {
+  toast.textContent = message;
+  toast.classList.remove("hidden");
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.add("hidden");
+  }, ms);
+}
+
+const invSlots = Array.from(document.querySelectorAll(".inv-slot"));
+
+function renderInventory() {
+  invSlots.forEach((slotEl, i) => {
+    slotEl.innerHTML = "";
+
+    const item = save.inventory[i]; 
+    if (item) {
+      const img = document.createElement("img");
+      img.src = item.img;
+      img.alt = item.id;
+      slotEl.appendChild(img);
+    }
+
+    slotEl.classList.toggle("equipped", save.equippedSlot === i);
+  });
+}
+
+function setEquippedSlot(i) {
+
+  if (!save.inventory[i]) return;
+
+
+  if (save.equippedSlot === i) {
+    save.equippedSlot = null;
+    saveGame();
+    renderInventory();
+    showToast("Item unequipped");
+    return;
+  }
+
+  save.equippedSlot = i;
+  saveGame();
+  renderInventory();
+  showToast("Item equipped");
+}
+
+invSlots.forEach((slotEl, i) => {
+  slotEl.addEventListener("click", () => setEquippedSlot(i));
+});
+
+function removeInventoryItemAt(index) {
+  if (index < 0 || index >= save.inventory.length) return;
+
+  if (save.equippedSlot === index) {
+    save.equippedSlot = null;
+  } else if (save.equippedSlot !== null && save.equippedSlot > index) {
+    save.equippedSlot -= 1;
+  }
+
+  save.inventory.splice(index, 1);
+  saveGame();
+  renderInventory();
+}
+
+
+function useEquippedItem() {
+  if (save.equippedSlot === null) {
+    showToast("No item equipped");
+    return;
+  }
+
+  const item = save.inventory[save.equippedSlot];
+  if (!item) return;
+
+  if (item.type !== "heal") {
+    showToast("Can't use this now");
+    return;
+  }
+
+  showToast(`Healed +${item.heal}`);
+  removeInventoryItemAt(save.equippedSlot);
+}
+
+
+renderInventory();
+
+
+document.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "e") {
+    useEquippedItem();
+  }
+});
+
+
+
+//hotspots
+
+const overlay = document.querySelector("#overlay");
+const overlayImage = document.querySelector("#overlayImage");
+const overlayItems = document.querySelector("#overlayItems");
+
 
 const overlayImages = {
   drawer: "Assets/ProjectEvangelineDrawer.png",
