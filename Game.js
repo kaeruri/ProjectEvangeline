@@ -461,9 +461,6 @@ function clearAllHotspotItems() {
 }
 
 
-
-
-
 //changing rooms
 function renderRoom() {
   const currentRoom = Rooms[currentRoomID];
