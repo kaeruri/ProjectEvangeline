@@ -1,3 +1,5 @@
+localStorage.removeItem("save_story");
+
 const mode = localStorage.getItem("gameMode");
 let audioUnlocked = false;
 let pendingJumpscare = null;
@@ -249,6 +251,13 @@ const Rooms = {
         exits: {
             left: {}
         },
+        boss: {
+            id: "boss2",
+            name: "MALE BOSS",
+            maxHP: 500,
+            img: "Assets/Boss2.png",
+            jumpscareImg: "Assets/Boss2jumpscare.png"
+        },
         hotspots: [{
             id: "Tcabinet1",
             overlay: "cabinet",
@@ -287,6 +296,13 @@ const Rooms = {
         exits: {
             left: {},
             right: {}
+        },
+        boss: {
+            id: "boss3",
+            name: "FINAL BOSS",
+            maxHP: 1000,
+            img: "Assets/Boss3.png",
+            jumpscareImg: "Assets/Boss3jumpscare.png"
         }
     },
 
@@ -349,24 +365,27 @@ const Rooms = {
 const ITEM_EFFECTS = {
   bandages: {
     type: "heal",
-    heal: 15
+    heal: 30
   },
   medkit: {
     type: "heal",
-    heal: 30
+    heal: 100
   },
   injection: {
     type: "heal",
     heal: 50
   },
-
+  gun: {
+    type: "weapon",
+    damage: 10
+  },
   knife: {
     type: "weapon",
-    damage: 20
+    damage: 5
   },
   needle: {
     type: "weapon",
-    damage: 30
+    damage: 2
   }
 };
 
@@ -377,7 +396,7 @@ walkSFX.volume = 0.6;
 
 const sfx = {
   cabinet: new Audio("Audios/CabinetSFX.wav"),
-  drawer: new Audio("Audios/DrawerSFX.wav"),
+  drawer: new Audio("Audios/DrawerSFX.mp3"),
   jumpscare: new Audio("Audios/JumpscareSFX.wav")
 
 };
@@ -408,44 +427,43 @@ let currentBossMaxHP = 0;
 function updateArrows() {
   const currentRoom = Rooms[currentRoomID];
 
-  let leftArrow = document.querySelector("#arrowLeft");
-  let rightArrow = document.querySelector("#arrowRight");
-  let backArrow = document.querySelector("#arrowBackward");
-  let forwardArrow = document.querySelector("#arrowForward");
+  const leftArrow = document.querySelector("#arrowLeft");
+  const rightArrow = document.querySelector("#arrowRight");
+  const backArrow = document.querySelector("#arrowBackward");
+  const forwardArrow = document.querySelector("#arrowForward");
 
-  if (currentRoom.exits["left"]) {
-      leftArrow.classList.remove("hidden");
+  if (currentRoom.exits.left) {
+    leftArrow.classList.remove("hidden");
   } else {
-      leftArrow.classList.add("hidden");
+    leftArrow.classList.add("hidden");
   }
 
-  if (currentRoom.exits["right"]) {
-      rightArrow.classList.remove("hidden");
+  if (currentRoom.exits.right) {
+    rightArrow.classList.remove("hidden");
   } else {
-      rightArrow.classList.add("hidden");
+    rightArrow.classList.add("hidden");
   }
 
-  if (currentRoom.exits["back"]) {
-      backArrow.classList.remove("hidden");
+  if (currentRoom.exits.back) {
+    backArrow.classList.remove("hidden");
   } else {
-      backArrow.classList.add("hidden");
+    backArrow.classList.add("hidden");
   }
 
-  if (currentRoom.exits["forward"]) {
-      forwardArrow.classList.remove("hidden");
+  if (currentRoom.exits.forward) {
+    forwardArrow.classList.remove("hidden");
   } else {
-      forwardArrow.classList.add("hidden");
+    forwardArrow.classList.add("hidden");
   }
 
   if (currentRoom.boss) {
-  leftArrow.classList.add("hidden");
-  rightArrow.classList.add("hidden");
-  backArrow.classList.add("hidden");
-  forwardArrow.classList.add("hidden");
-  return;
+    leftArrow.classList.add("hidden");
+    rightArrow.classList.add("hidden");
+    backArrow.classList.add("hidden");
+    forwardArrow.classList.add("hidden");
+  }
 }
 
-}
 
 //inventory
 let save = JSON.parse(localStorage.getItem("save_story")) || {
@@ -591,6 +609,67 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+//fights
+function attackBoss() {
+  const currentRoom = Rooms[currentRoomID];
+  if (!currentRoom.boss) return;
+
+  if (save.equippedSlot === null) {
+    showToast("No weapon equipped");
+    return;
+  }
+
+  const item = save.inventory[save.equippedSlot];
+  if (!item || item.type !== "weapon") {
+    showToast("That can't attack");
+    return;
+  }
+
+  currentBossHP -= item.damage;
+  if (currentBossHP < 0) currentBossHP = 0;
+
+  bossHPtext.textContent = `${currentBossHP} / ${currentBossMaxHP}`;
+  bossHPfill.style.width = `${(currentBossHP / currentBossMaxHP) * 100}%`;
+
+  showToast(`Hit for ${item.damage}`);
+
+  if (currentBossHP === 0) {
+    onBossDefeated(currentRoom.boss);
+  }
+  console.log("ATTACK");
+
+}
+
+function onBossDefeated(boss) {
+  showToast(`${boss.name} defeated`);
+
+  bossHP.classList.add("hidden");
+  bossImage.classList.add("hidden");
+
+  stopWhispers();
+
+  const room = Rooms[currentRoomID];
+  delete room.boss;
+
+  save.bosses = save.bosses || {};
+  save.bosses[boss.id] = true;
+  saveGame();
+
+  updateArrows();
+}
+
+
+document.addEventListener("click", (e) => {
+  const currentRoom = Rooms[currentRoomID];
+  if (!currentRoom.boss) return;
+
+  if (e.target.closest("#inventory")) return;
+  if (e.target.closest("#overlay")) return;
+  if (e.target.closest("#bossHP")) return;
+  if (e.target.closest("#arrowLeft, #arrowRight, #arrowBackward, #arrowForward")) return;
+
+  attackBoss();
+});
 
 
 //hotspots
@@ -703,6 +782,13 @@ function clearAllHotspotItems() {
 const jumpscare = document.querySelector("#jumpscare");
 const jumpscareImg = document.querySelector("#jumpscareImg");
 
+const JUMPSCARE_POS = {
+  boss1: "50% 20%",
+  boss2: "50% 20%",
+  boss3: "50% 60%"
+};
+
+
 function playJumpscare(imgSrc, durationMs = 600) {
   let didPlaySound = false;
 
@@ -734,6 +820,12 @@ function playJumpscare(imgSrc, durationMs = 600) {
 save.jumpscaresPlayed = save.jumpscaresPlayed || {};
 
 //bosses
+const BOSS_STYLE = {
+  boss1: { left: "50%", top: "60%", width: "20vw" },
+  boss2: { left: "50%", top: "70%", width: "35vw"},
+  boss3: { left: "50%", top: "60%", width: "20vw"}
+};
+
 const bossImage = document.querySelector("#bossImage");
 
 
@@ -769,28 +861,44 @@ function renderRoom() {
     bossHPtext.textContent = `${currentBossHP} / ${currentBossMaxHP}`;
     bossHPfill.style.width = "100%";
 
-
     bossImage.src = currentRoom.boss.img;
     bossImage.classList.remove("hidden");
 
+    const st = BOSS_STYLE[currentRoom.boss.id];
+
+    if (st) {
+      if (st.left) bossImage.style.left = st.left;
+      if (st.top) bossImage.style.top = st.top;
+      if (st.width) bossImage.style.width = st.width;
+
+      const scale = st.scale ?? 1;
+      bossImage.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    } else {
+      bossImage.style.left = "50%";
+      bossImage.style.top = "55%";
+      bossImage.style.width = "35vw";
+      bossImage.style.transform = "translate(-50%, -50%)";
+    }
 
     save.jumpscaresPlayed = save.jumpscaresPlayed || {};
 
     if (!save.jumpscaresPlayed[currentRoom.boss.id]) {
-      const playedNow = playJumpscare(currentRoom.boss.jumpscareImg);
-
-      if (playedNow) {
-        save.jumpscaresPlayed[currentRoom.boss.id] = true;
-        saveGame();
-      }
+      playJumpscare(currentRoom.boss.jumpscareImg);
+      save.jumpscaresPlayed[currentRoom.boss.id] = true;
+      saveGame();
     }
-
   } else {
-
     bossHP.classList.add("hidden");
     bossImage.classList.add("hidden");
   }
+
+  if (audioUnlocked) {
+    if (currentRoom.boss) startWhispers();
+    else stopWhispers();
+  }
 }
+
+
 
 
 
@@ -900,6 +1008,50 @@ if (mode === "survival") {
 }
 
 
+//fight bgm
+
+const whisperSFX = new Audio("Audios/fightwhisperBGM.mp3");
+whisperSFX.loop = true;
+whisperSFX.volume = 0;   
+whisperSFX.preload = "auto";
+
+let whisperFadeTimer = null;
+
+function fadeTo(audio, targetVolume, step = 0.02, intervalMs = 30) {
+  clearInterval(whisperFadeTimer);
+
+  whisperFadeTimer = setInterval(() => {
+    const v = audio.volume;
+
+    if (Math.abs(v - targetVolume) <= step) {
+      audio.volume = targetVolume;
+      clearInterval(whisperFadeTimer);
+
+      if (targetVolume === 0) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      return;
+    }
+
+    audio.volume = v + (v < targetVolume ? step : -step);
+  }, intervalMs);
+}
+
+function startWhispers() {
+  if (!audioUnlocked) return;
+
+  if (whisperSFX.paused) {
+    whisperSFX.currentTime = 0;
+    whisperSFX.play().catch(() => {});
+  }
+
+  fadeTo(whisperSFX, 1);
+}
+
+function stopWhispers() {
+  fadeTo(whisperSFX, 0);
+}
 
 //BGM
 
@@ -937,14 +1089,23 @@ function unlockAudio() {
   document.removeEventListener("click", unlockAudio);
   document.removeEventListener("keydown", unlockAudio);
   document.removeEventListener("touchstart", unlockAudio);
+
+  [bgm, whisperSFX, ...Object.values(sfx)].forEach(a => {
+  try {
+        a.play().then(() => {
+         a.pause();
+         a.currentTime = 0;
+        }).catch(() => {});
+    } catch {}
+  });
+
 }
-
-
 
 // If already unlocked this session, try to play + hide gate
 if (sessionStorage.getItem("audioUnlocked") === "true") {
   audioUnlocked = true; 
   bgm.play().catch(() => {});
+  whisperSFX.load();
   if (gate) gate.style.display = "none";
 } else {
   // Need user gesture first
