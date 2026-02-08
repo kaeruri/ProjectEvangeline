@@ -432,6 +432,16 @@ const PHASES = {
   ENDING: 8
 };
 
+const PHASE_START_ROOMS = {
+  [PHASES.BEDROOM]: "startingBedroom",
+  [PHASES.LIVING_ROOM]: "livingRoom",
+  [PHASES.DINING_NEEDLE]: "diningArea",
+  [PHASES.BOSS_1]: "kitchen",
+  [PHASES.BOSS_2]: "toilet",
+  [PHASES.FREE_ROAM]: "livingRoom"
+};
+
+
 //save
 let save = JSON.parse(localStorage.getItem("save_story")) || {
   inventory: [],
@@ -1284,7 +1294,57 @@ function onPlayerDied() {
   }
 
   showToast("You died");
+
+  if (mode === "story") {
+    setTimeout(() => {
+      respawnPlayer();
+    }, 1200);
+  } else {
+    handleSurvivalDeath();
+  }
 }
+
+
+//story respawn
+function respawnPlayer() {
+  const phase = save.story.currentPhase;
+
+  // reset HP
+  playerHP = playerMaxHP;
+  updatePlayerHPUI();
+
+  // reset phase items & boss
+  resetCurrentPhase();
+
+  // move player to phase start
+  const startRoom = PHASE_START_ROOMS[phase];
+  if (startRoom) {
+    currentRoomID = startRoom;
+  }
+
+  renderRoom();
+}
+
+//survival death
+function handleSurvivalDeath() {
+  dialogueLocked = true;
+
+  // hide UI
+  bossHP.classList.add("hidden");
+  bossImage.classList.add("hidden");
+
+  // optional: fade screen / red overlay
+  document.body.classList.add("dead");
+
+  // disable movement
+  stopBossFightLoop();
+
+  // YOU decide what happens next:
+  // - reload page
+  // - show restart button
+  // - return to menu
+}
+
 
 
 //hotspots
