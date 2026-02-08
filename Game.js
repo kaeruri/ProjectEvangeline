@@ -177,7 +177,8 @@ const Rooms = {
             name: "FEMALE BOSS",
             maxHP: 500,
             img: "Assets/Boss1.png",
-            jumpscareImg: "Assets/Boss1jumpscare.png"
+            jumpscareImg: "Assets/Boss1jumpscare.png",
+            attackDamage: 3
         },
         hotspots: [{
             id: "Kcabinet1",
@@ -256,7 +257,8 @@ const Rooms = {
             name: "MALE BOSS",
             maxHP: 500,
             img: "Assets/Boss2.png",
-            jumpscareImg: "Assets/Boss2jumpscare.png"
+            jumpscareImg: "Assets/Boss2jumpscare.png",
+            attackDamage: 5
         },
         hotspots: [{
             id: "Tcabinet1",
@@ -302,7 +304,8 @@ const Rooms = {
             name: "FINAL BOSS",
             maxHP: 1000,
             img: "Assets/Boss3.png",
-            jumpscareImg: "Assets/Boss3jumpscare.png"
+            jumpscareImg: "Assets/Boss3jumpscare.png",
+            attackDamage: 6
         }
     },
 
@@ -382,6 +385,10 @@ const ITEM_EFFECTS = {
   knife: {
     type: "weapon",
     damage: 5
+  },
+  scissors: {
+    type: "weapon",
+    damage: "3"
   },
   needle: {
     type: "weapon",
@@ -595,7 +602,10 @@ function useEquippedItem() {
     return;
   }
 
+  playerHP = Math.min(playerMaxHP, playerHP + item.heal);
+  updatePlayerHPUI();
   showToast(`Healed +${item.heal}`);
+
   removeInventoryItemAt(save.equippedSlot);
 }
 
@@ -609,7 +619,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-//fights
+//fights (boss)
 function attackBoss() {
   const currentRoom = Rooms[currentRoomID];
   if (!currentRoom.boss) return;
@@ -670,6 +680,56 @@ document.addEventListener("click", (e) => {
 
   attackBoss();
 });
+
+//fights (player)
+
+let playerMaxHP = 100;
+let playerHP = 100;
+
+const playerHPbar = document.querySelector("#playerHP");
+const playerHPfill = document.querySelector("#playerHPfill");
+const playerHPtext = document.querySelector("#playerHPtext");
+
+function updatePlayerHPUI() {
+  if (!playerHPbar) return;
+  playerHPtext.textContent = `${playerHP} / ${playerMaxHP}`;
+  playerHPfill.style.width = `${(playerHP / playerMaxHP) * 100}%`;
+}
+
+//boss attack pattern
+let bossAttackTimer = null;
+
+function startBossFightLoop() {
+  stopBossFightLoop();
+
+  bossAttackTimer = setInterval(() => {
+    const room = Rooms[currentRoomID];
+    if (!room?.boss) return;
+
+    const dmg = room.boss.attackDamage ?? 8;
+    playerHP -= dmg;
+    if (playerHP < 0) playerHP = 0;
+
+    updatePlayerHPUI();
+    showToast(`You took ${dmg} damage`);
+
+    if (playerHP === 0) {
+      onPlayerDied();
+    }
+  }, 1600);
+}
+
+function stopBossFightLoop() {
+  if (bossAttackTimer) clearInterval(bossAttackTimer);
+  bossAttackTimer = null;
+}
+
+function onPlayerDied() {
+  stopBossFightLoop();
+  stopWhispers();
+  showToast("You died");
+}
+
 
 
 //hotspots
@@ -879,6 +939,10 @@ function renderRoom() {
       bossImage.style.width = "35vw";
       bossImage.style.transform = "translate(-50%, -50%)";
     }
+
+    if (currentRoom.boss) startBossFightLoop();
+    else stopBossFightLoop();
+
 
     save.jumpscaresPlayed = save.jumpscaresPlayed || {};
 
