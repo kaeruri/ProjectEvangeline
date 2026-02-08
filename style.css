@@ -628,12 +628,12 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
-  z-index: 10;
+  z-index: 105;
 }
 
 #dialogueText {
   margin: 0;
-  text-align: left;
+  text-align: center;
 }
 
 #dialogueHint {
@@ -1088,7 +1088,7 @@ body {
 #overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 100;
 }
 
 #overlayImage {

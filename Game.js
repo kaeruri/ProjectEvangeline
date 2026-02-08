@@ -390,17 +390,385 @@ const ITEM_EFFECTS = {
   },
   knife: {
     type: "weapon",
-    damage: 5
+    damage: 8
   },
   scissors: {
     type: "weapon",
-    damage: "3"
+    damage: 5
   },
   needle: {
     type: "weapon",
-    damage: 2
+    damage: 3
   }
 };
+
+const STORY_ITEMS = new Set([
+  "needle",
+  "knife",
+  "bandages",
+  "medkit",
+  "key"
+]);
+
+const PHASES = {
+  BEDROOM: 1,
+  LIVING_ROOM: 2,
+  DINING_NEEDLE: 3,
+  BOSS_1: 4,
+  BOSS_2: 5,
+  BOSS_3: 6,
+  FREE_ROAM: 7,
+  ENDING: 8
+};
+
+//save
+let save = JSON.parse(localStorage.getItem("save_story")) || {
+  inventory: [],
+  collected: {},
+  equippedSlot: null
+};
+
+function saveGame() {
+  localStorage.setItem("save_story", JSON.stringify(save));
+}
+
+save.story = save.story || {
+  currentPhase: PHASES.BEDROOM,
+  completedPhases: {},
+  dialoguesPlayed: {},
+  lastRoomID: null
+};
+
+
+//story phases
+
+let phaseItemsCollected = [];
+
+function startPhase(phaseNumber) {
+  save.story.currentPhase = phaseNumber;
+  phaseItemsCollected = [];
+
+  saveGame();
+}
+
+function resetCurrentPhase() {
+  const phase = save.story.currentPhase;
+
+    phaseItemsCollected.forEach(itemId => {
+    delete save.collected[itemId];
+    });
+
+
+  save.inventory = save.inventory.filter(
+    item => !phaseItemsCollected.includes(item.id)
+  );
+
+  phaseItemsCollected = [];
+
+  const room = Rooms[currentRoomID];
+  if (room?.boss) {
+    currentBossHP = room.boss.maxHP;
+  }
+
+  saveGame();
+  renderInventory();
+  renderRoom();
+}
+
+function handlePhaseProgression(prevRoomID) {
+  const phase = save.story.currentPhase;
+
+  // Phase 1 → Phase 2: bedroom → living room
+  if (
+    phase === PHASES.BEDROOM &&
+    prevRoomID === "startingBedroom" &&
+    currentRoomID === "livingRoom"
+  ) {
+    startPhase(PHASES.LIVING_ROOM);
+    return;
+  }
+
+  // Phase 2 → Phase 3: living room → dining area
+  if (
+    phase === PHASES.LIVING_ROOM &&
+    prevRoomID === "livingRoom" &&
+    currentRoomID === "diningArea"
+  ) {
+    startPhase(PHASES.DINING_NEEDLE);
+    return;
+  }
+
+  // Phase 3 → Phase 4: dining → LEFT AFTER needle
+  if (
+    phase === PHASES.DINING_NEEDLE &&
+    save.collected["needle"] &&
+    prevRoomID === "diningArea" &&
+    currentRoomID === "kitchen"
+  ) {
+    startPhase(PHASES.BOSS_1);
+    return;
+  }
+
+    if (
+    phase === PHASES.BOSS_1 &&
+    prevRoomID === "kitchen" &&   
+    currentRoomID === "toilet" &&
+    save.collected["knife"] &&
+    save.collected["bandages"]
+  ) {
+    startPhase(PHASES.BOSS_2);
+    return;
+  }
+}
+
+function canMove(direction) {
+  if (dialogueLocked) return false;
+
+  const phase = save.story.currentPhase;
+
+  // Phase 1: bedroom → only left
+  if (phase === PHASES.BEDROOM) {
+    return direction === "left";
+  }
+
+  // Phase 2: living room → only left
+  if (phase === PHASES.LIVING_ROOM) {
+    return direction === "left";
+  }
+
+  // Phase 3: dining → locked until needle, then only left
+  if (phase === PHASES.DINING_NEEDLE) {
+    if (!save.collected["needle"]) return false;
+    return direction === "left";
+  }
+
+  // Phase 4: AFTER boss1 (item hunt)
+  if (phase === PHASES.BOSS_1) {
+    const hasItems =
+      save.collected["knife"] &&
+      save.collected["bandages"];
+
+    if (!hasItems) return false;  
+    return direction === "right";  
+  }
+
+  // Phase 5: Boss2 fight → no movement
+  if (phase === PHASES.BOSS_2) {
+    return false;
+  }
+
+  return true;
+}
+
+function setupPhaseContent() {
+  if (mode !== "story") return; 
+
+  const phase = save.story.currentPhase;
+
+  if (phase === PHASES.BOSS_1) {
+    const kitchen = Rooms.kitchen;
+
+    if (!kitchen.boss) {
+      kitchen.boss = {
+        id: "boss1",
+        name: "???",
+        maxHP: 40,
+        attackDamage: 8,
+        img: "Assets/Boss1.png",
+        jumpscareImg: "Assets/Boss1Jumpscare.png"
+      };
+    }
+  }
+}
+
+
+
+//Dialogue
+
+const dialogueBox = document.querySelector("#dialogueBox");
+const dialogueText = document.querySelector("#dialogueText");
+const dialogueHint = document.querySelector("#dialogueHint");
+
+let dialogueLocked = false;
+let activeDialogue = null;
+let dialogueIndex = 0;
+
+save.story.dialoguesPlayed = save.story.dialoguesPlayed || {};
+save.story.lastRoomID = save.story.lastRoomID || null;
+
+function startDialogue(dialogueKey, lines, onComplete = null) {
+  if (!lines || lines.length === 0) return;
+
+  dialogueLocked = true;
+  activeDialogue = { key: dialogueKey, lines, onComplete };
+  dialogueIndex = 0;
+
+  dialogueBox.classList.remove("hidden");
+  renderDialogueLine();
+}
+
+function renderDialogueLine() {
+  const line = activeDialogue.lines[dialogueIndex];
+  dialogueText.textContent = `${line.speaker}: ${line.text}`;
+  if (dialogueHint) dialogueHint.textContent = "(click anywhere to continue)";
+}
+
+function endDialogue() {
+  dialogueBox.classList.add("hidden");
+  dialogueLocked = false;
+
+  const finished = activeDialogue; 
+
+  if (finished?.key) {
+    save.story.dialoguesPlayed[finished.key] = true;
+    saveGame();
+  }
+
+  activeDialogue = null;
+  dialogueIndex = 0;
+
+  if (typeof finished?.onComplete === "function") {
+    finished.onComplete();
+  }
+}
+
+function advanceDialogue() {
+  if (!activeDialogue) return;
+
+  dialogueIndex++;
+
+  if (dialogueIndex >= activeDialogue.lines.length) {
+    endDialogue();
+    return;
+  }
+
+  renderDialogueLine();
+}
+
+
+document.addEventListener(
+  "click",
+  (e) => {
+    if (!dialogueLocked) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    advanceDialogue();
+  },
+  true
+);
+
+const DIALOGUES = {
+  phase1_bedroom_enter: [
+    { speaker: "YOU", text: "..." },
+    { speaker: "YOU", text: "Where am I?"},
+    { speaker: "YOU", text: "Is this my house?"},
+    { speaker: "BUNNY", text: "Well no, not really." },
+    { speaker: "YOU", text: "AHH! My bunny plush is talking?!"},
+    { speaker: "BUNNY", text: "Me being able to speak should be the least of your concerns right now." },
+    { speaker: "YOU", text: "..."},
+    { speaker: "YOU", text: "What do you mean by that...and what do you mean this isn't my house?"},
+    { speaker: "BUNNY", text: "It definitely looks like your house...doesn't mean it actually is though." },
+    { speaker: "BUNNY", text: "If I were you, I'd find the way out right now." },
+    { speaker: "BUNNY", text: "This isn't the type of place you'd like to stay in." },
+    { speaker: "YOU", text: "W-what?"},
+    { speaker: "BUNNY", text: "Let's just say there are not so pleasant things in this house with you right now." },
+    { speaker: "BUNNY", text: "You're not safe here. I suggest you leave this room and start looking for things that could help you."},
+    { speaker: "BUNNY", text: "Exit through the left door. NOW." },
+  ],
+  phase2_living_enter: [
+    { speaker: "YOU", text: "This house… it feels wrong." },
+    { speaker: "BUNNY", text: "We could run into something unpleasant at any moment, try looking through the furniture in the house, we might find something of use." },
+    { speaker: "BUNNY", text: "Let's head to the left for now. Be careful." }
+  ],
+  phase3_dining_enter: [
+    { speaker: "YOU", text: "This place actually looks exactly like my house...just much scarier..."},
+    { speaker: "BUNNY", text: "Well you should be scared, afterall you could just die here." },
+    { speaker: "YOU", text: "..."},
+    { speaker: "BUNNY", text: "I have a feeling something is closing in. Quick, try opening the cabinets, look for anything that might help us." }
+  ],
+  phase3_needle_pickup: [
+    { speaker: "YOU", text: "A needle...?" },
+    { speaker: "BUNNY", text: "Not ideal, but it’s better than nothing." },
+    { speaker: "SYSTEM", text: "(CLICK ON ITEM SLOT IN INVENTORY ON THE RIGHT TO EQUIP)" },
+    { speaker: "SYSTEM", text: "(CLICK ON BOSSES TO DEAL DAMAGE)" },
+    { speaker: "SYSTEM", text: "(YOU CANNOT ATTACK BOSSES WITHOUT EQUIPPING A WEAPON)" },
+    { speaker: "BUNNY", text: "We should keep moving...before something finds us..."}
+  ],
+  phase4_boss1_defeat: [
+    { speaker: "BUNNY", text: "Oh my, that was certainly scary..." },
+    { speaker: "YOU", text: "..." },
+    { speaker: "YOU", text: "WHAT WAS THAT?! THAT WAS HORRIFYING" },
+    { speaker: "BUNNY", text: "I guess that was one of the unpleasant things in this house with you." },
+    { speaker: "YOU", text: "...(shaking)" },
+    { speaker: "YOU", text: "You did well, you're braver than I thought." },
+    { speaker: "YOU", text: "Can we turn back? I don't want to do this anymore" },
+    { speaker: "BUNNY", text: "If you turn back now, there is an equal chance of you running into something unpleasant."},
+    { speaker: "YOU", text: "..." },
+    { speaker: "YOU", text: "Alright...let's move on..." },
+    { speaker: "YOU", text: "Remember to look through the furiture here too, anything could be of great help to us." }
+  ],
+  phase4_items_ready: [
+    { speaker: "BUNNY", text: "Aren't you lucky." },
+    { speaker: "BUNNY", text: "A knife and Bandages, those will definitely be of great help to us." },
+    { speaker: "BUNNY", text: "You should use those bandages now...or you could use them later...better late than never I guess." },
+    { speaker: "SYSTEM", text: "(EQUIP HEALING ITEMS THEN PRESS 'E' TO HEAL)" },
+    { speaker: "BUNNY", text: "We should get moving now."}
+  ]
+};
+
+function handleRoomEnterDialogue() {
+  if (mode !== "story") return;
+
+  const phase = save.story.currentPhase;
+  const roomID = currentRoomID;
+
+
+  if (
+    phase === PHASES.BEDROOM &&
+    roomID === "startingBedroom"
+  ) {
+    const key = "phase1_bedroom_enter";
+    if (!save.story.dialoguesPlayed[key]) {
+      startDialogue(key, DIALOGUES[key]);
+      save.story.lastRoomID = roomID;
+      saveGame();
+    }
+    return;
+  }
+
+
+  if (
+    phase === PHASES.LIVING_ROOM &&
+    roomID === "livingRoom"
+  ) {
+    const key = "phase2_living_enter";
+    if (!save.story.dialoguesPlayed[key]) {
+      startDialogue(key, DIALOGUES[key]);
+      save.story.lastRoomID = roomID;
+      saveGame();
+    }
+    return;
+  }
+
+    if (
+    phase === PHASES.DINING_NEEDLE &&
+    roomID === "diningArea"
+    ) {
+    const key = "phase3_dining_enter";
+    if (!save.story.dialoguesPlayed[key]) {
+        startDialogue(key, DIALOGUES[key]);
+        save.story.lastRoomID = roomID;
+        saveGame();
+    }
+    return;
+    }
+
+}
+
+
+
 
 //SFX
 
@@ -442,8 +810,6 @@ function flashDamage() {
 }
 
 
-
-
 const currentBGimg = document.querySelector('#GameBackground');
 let currentRoomID = "startingBedroom";
 
@@ -453,7 +819,6 @@ const bossHPfill = document.querySelector("#bossHPfill");
 const bossHPtext = document.querySelector("#bossHPtext");
 let currentBossHP = 0;
 let currentBossMaxHP = 0;
-
 
 
 
@@ -500,20 +865,10 @@ function updateArrows() {
 
 
 //inventory
-let save = JSON.parse(localStorage.getItem("save_story")) || {
-  inventory: [],
-  collected: {},
-  equippedSlot: null
-};
 
 save.inventory = save.inventory || [];
 if (save.equippedSlot === undefined) save.equippedSlot = null;
 save.collected = save.collected || {};
-
-
-function saveGame() {
-  localStorage.setItem("save_story", JSON.stringify(save));
-}
 
 function collectItem(item) {
   if (save.collected[item.id]) return;
@@ -539,9 +894,41 @@ function collectItem(item) {
     damage: def.damage
   });
 
+  phaseItemsCollected.push(item.id);
+
   saveGame();
   renderInventory();
   showToast("Item picked up");
+
+    // Phase 3 — needle pickup dialogue
+    if (
+    mode === "story" &&
+    save.story.currentPhase === PHASES.DINING_NEEDLE &&
+    item.id === "needle"
+    ) {
+    const key = "phase3_needle_pickup";
+
+    if (!save.story.dialoguesPlayed[key]) {
+        startDialogue(key, DIALOGUES[key]);
+    }
+    }
+
+    // Phase 4 — after boss1, both items collected
+    if (
+    mode === "story" &&
+    save.story.currentPhase === PHASES.BOSS_1 &&
+    save.collected["knife"] &&
+    save.collected["bandages"]
+    ) {
+    const key = "phase4_items_ready";
+
+    if (!save.story.dialoguesPlayed[key]) {
+        startDialogue(key, DIALOGUES[key]);
+    }
+    }
+
+
+
 }
 
 
@@ -668,8 +1055,6 @@ function attackBoss() {
   bossHPtext.textContent = `${currentBossHP} / ${currentBossMaxHP}`;
   bossHPfill.style.width = `${(currentBossHP / currentBossMaxHP) * 100}%`;
 
-  showToast(`Hit for ${item.damage}`);
-
   if (currentBossHP === 0) {
     onBossDefeated(currentRoom.boss);
   }
@@ -682,7 +1067,6 @@ function onBossDefeated(boss) {
 
   bossHP.classList.add("hidden");
   bossImage.classList.add("hidden");
-
   stopWhispers();
 
   const room = Rooms[currentRoomID];
@@ -693,6 +1077,10 @@ function onBossDefeated(boss) {
   saveGame();
 
   updateArrows();
+
+  if (mode === "story" && boss.id === "boss1") {
+    startDialogue("phase4_boss1_defeat", DIALOGUES.phase4_boss1_defeat);
+  }
 }
 
 
@@ -837,8 +1225,20 @@ function renderHotspots() {
 
   const room = Rooms[currentRoomID];
   const hotspots = room.hotspots || [];
+  let filteredHotspots = hotspots;
 
-  hotspots.forEach(hotspot => {
+    if (mode === "story") {
+    filteredHotspots = hotspots.filter(hotspot => {
+        if (!hotspot.items) return false;
+
+        return hotspot.items.some(item =>
+        STORY_ITEMS.has(item.id)
+        );
+    });
+    }
+
+  filteredHotspots.forEach(hotspot => {
+
     const hotspotDiv = document.createElement("div");
     hotspotDiv.classList.add("hotspot");
 
@@ -851,6 +1251,7 @@ function renderHotspots() {
     }
 
     hotspotDiv.addEventListener("click", () => {
+    if (dialogueLocked) return;
     const imageSrc = overlayImages[hotspot.overlay];
     if (!imageSrc) return;
 
@@ -946,12 +1347,16 @@ function clearAllBosses() {
 
 
 function renderRoom() {
+  if (mode === "story") setupPhaseContent();
+
   const currentRoom = Rooms[currentRoomID];
 
   currentBGimg.src = currentRoom.bg;
 
   updateArrows();
   renderHotspots();
+
+  if (mode === "story") handleRoomEnterDialogue();
 
   if (currentRoom.boss) {
     bossHP.classList.remove("hidden");
@@ -982,20 +1387,22 @@ function renderRoom() {
       bossImage.style.transform = "translate(-50%, -50%)";
     }
 
-    if (currentRoom.boss) startBossFightLoop();
-    else stopBossFightLoop();
+    startBossFightLoop();
 
-
-    save.jumpscaresPlayed = save.jumpscaresPlayed || {};
-
-    if (!save.jumpscaresPlayed[currentRoom.boss.id]) {
+    if (mode === "story") {
+      save.jumpscaresPlayed = save.jumpscaresPlayed || {};
+      if (!save.jumpscaresPlayed[currentRoom.boss.id]) {
+        playJumpscare(currentRoom.boss.jumpscareImg);
+        save.jumpscaresPlayed[currentRoom.boss.id] = true;
+        saveGame();
+      }
+    } else {
       playJumpscare(currentRoom.boss.jumpscareImg);
-      save.jumpscaresPlayed[currentRoom.boss.id] = true;
-      saveGame();
     }
   } else {
     bossHP.classList.add("hidden");
     bossImage.classList.add("hidden");
+    stopBossFightLoop();
   }
 
   if (audioUnlocked) {
@@ -1003,8 +1410,6 @@ function renderRoom() {
     else stopWhispers();
   }
 }
-
-
 
 
 
@@ -1036,10 +1441,19 @@ if (mode === "story") {
     // PARENTS BEDROOM
     Rooms.parentsBedroom.exits.back = "exitHallway";
 
+    save.story.lastRoomID = null;
+    saveGame();
+
+    startPhase(save.story.currentPhase || PHASES.BEDROOM);
     renderRoom();
+    handlePhaseProgression();
+
 
     const leftArrow = document.querySelector("#arrowLeft");
     leftArrow.addEventListener("click", () => {
+      if (!canMove("left")) return;
+
+      const prevRoomID = currentRoomID;
       const currentRoom = Rooms[currentRoomID];
       const nextRoomID = currentRoom.exits.left;
 
@@ -1054,11 +1468,15 @@ if (mode === "story") {
         },  2150);
 
       currentRoomID = nextRoomID;
+      handlePhaseProgression(prevRoomID);
       renderRoom();
     });
 
     const rightArrow = document.querySelector("#arrowRight")
     rightArrow.addEventListener("click", () => {
+        if (!canMove("right")) return;
+
+        const prevRoomID = currentRoomID;
         const currentRoom = Rooms[currentRoomID];
         const nextRoomID = currentRoom.exits.right;
 
@@ -1073,11 +1491,15 @@ if (mode === "story") {
         }, 2150);
 
         currentRoomID = nextRoomID
+        handlePhaseProgression(prevRoomID);
         renderRoom();
     });
 
     const backArrow = document.querySelector("#arrowBackward")
     backArrow.addEventListener("click", () => {
+        if (!canMove("back")) return;
+
+        const prevRoomID = currentRoomID;
         const currentRoom = Rooms[currentRoomID];
         const nextRoomID = currentRoom.exits.back;
 
@@ -1092,17 +1514,22 @@ if (mode === "story") {
         }, 2150);
 
         currentRoomID = nextRoomID
+        handlePhaseProgression(prevRoomID);
         renderRoom();
     });
 
     const forwardArrow = document.querySelector("#arrowForward")
     forwardArrow.addEventListener("click", () => {
+        if (!canMove("forward")) return;
+
+        const prevRoomID = currentRoomID;
         const currentRoom = Rooms[currentRoomID];
         const nextRoomID = currentRoom.exits.forward;
 
         if (!nextRoomID) return;
 
         currentRoomID = nextRoomID
+        handlePhaseProgression(prevRoomID);
         renderRoom();
     });
 
