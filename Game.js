@@ -569,6 +569,11 @@ function canMove(direction) {
     return false;
   }
 
+    // FREE ROAM — allow movement
+    if (phase === PHASES.FREE_ROAM) {
+    return true;
+    }
+
   return true;
 }
 
@@ -917,13 +922,14 @@ function updateArrows() {
   forwardArrow.classList.add("hidden");
     // FREE ROAM + KEY + EXIT HALLWAY
     if (
-    mode === "story" &&
-    save.story.currentPhase === PHASES.FREE_ROAM &&
+    phase === PHASES.FREE_ROAM &&
     save.story.keyFound &&
     currentRoomID === "exitHallway"
     ) {
     forwardArrow.classList.remove("hidden");
+    Rooms.exitHallway.exits.forward = "endingRoom";
     }
+
 
 }
 
