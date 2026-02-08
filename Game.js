@@ -234,6 +234,12 @@ const Rooms = {
                 left: 53,
                 top: 20,
                 width: 20
+            },
+            {   id: "bandages",
+                img: "Assets/ProjectEvangelineBandages.png",
+                left: 22,
+                top: 50,
+                width: 20
             }]
 
         },
@@ -415,6 +421,27 @@ sfx.jumpscare.volume = 1.0;
 Object.values(sfx).forEach(a => {
   a.preload = "auto";
 });
+
+const playerHitSFX = new Audio("Audios/DamagedSFX.wav");
+playerHitSFX.volume = 1.0;
+
+const playerDeathSFX = new Audio("Audios/DeadSFX.wav");
+playerDeathSFX.volume = 1.0;
+
+
+//damage flash
+
+function flashDamage() {
+  const flash = document.getElementById("damageFlash");
+  if (!flash) return;
+
+  flash.classList.add("active");
+  setTimeout(() => {
+    flash.classList.remove("active");
+  }, 200);
+}
+
+
 
 
 const currentBGimg = document.querySelector('#GameBackground');
@@ -707,11 +734,18 @@ function startBossFightLoop() {
     if (!room?.boss) return;
 
     const dmg = room.boss.attackDamage ?? 8;
+
     playerHP -= dmg;
     if (playerHP < 0) playerHP = 0;
 
     updatePlayerHPUI();
-    showToast(`You took ${dmg} damage`);
+
+    flashDamage();
+
+    if (audioUnlocked) {
+      playerHitSFX.currentTime = 0;
+      playerHitSFX.play().catch(() => {});
+    }
 
     if (playerHP === 0) {
       onPlayerDied();
@@ -727,9 +761,17 @@ function stopBossFightLoop() {
 function onPlayerDied() {
   stopBossFightLoop();
   stopWhispers();
+
+  flashDamage();
+  setTimeout(flashDamage, 180);
+
+  if (audioUnlocked) {
+    playerDeathSFX.currentTime = 0;
+    playerDeathSFX.play().catch(() => {});
+  }
+
   showToast("You died");
 }
-
 
 
 //hotspots
@@ -1121,7 +1163,7 @@ function stopWhispers() {
 
 const bgm = new Audio("Audios/AreYouAloneBGM.mp3");
 bgm.loop = true;
-bgm.volume = 0.30;
+bgm.volume = 0.25;
 
 const gate = document.getElementById("audioGate");
 

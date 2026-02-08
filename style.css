@@ -1117,12 +1117,26 @@ body {
   border: 2px solid red; /* DEBUG */
   background: rgba(255, 0, 0, 0.2); /* DEBUG */
 }
-
-
-
 .overlay-item:hover {
   filter: brightness(1.1);
 }
+
+/*damage flash*/
+
+#damageFlash {
+  position: fixed;
+  inset: 0;
+  background: rgba(150, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 99999;
+  transition: opacity 0.35s ease-out;
+}
+
+#damageFlash.active {
+  opacity: 1;
+}
+
 
 
 .hidden {
