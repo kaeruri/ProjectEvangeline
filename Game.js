@@ -1,5 +1,7 @@
-
 const mode = localStorage.getItem("gameMode");
+let audioUnlocked = false;
+let pendingJumpscare = null;
+
 
 const Rooms = {
 
@@ -167,6 +169,13 @@ const Rooms = {
         exits: {
             back: {},
             right: {}
+        },
+        boss: { 
+            id: "boss1",
+            name: "FEMALE BOSS",
+            maxHP: 500,
+            img: "Assets/Boss1.png",
+            jumpscareImg: "Assets/Boss1jumpscare.png"
         },
         hotspots: [{
             id: "Kcabinet1",
@@ -361,9 +370,39 @@ const ITEM_EFFECTS = {
   }
 };
 
+//SFX
+
+const walkSFX = new Audio("Audios/Walkingsfx.mp3");
+walkSFX.volume = 0.6;
+
+const sfx = {
+  cabinet: new Audio("Audios/CabinetSFX.wav"),
+  drawer: new Audio("Audios/DrawerSFX.wav"),
+  jumpscare: new Audio("Audios/JumpscareSFX.wav")
+
+};
+
+sfx.cabinet.volume = 0.6;
+sfx.drawer.volume = 0.6;
+sfx.jumpscare.volume = 1.0; 
+
+Object.values(sfx).forEach(a => {
+  a.preload = "auto";
+});
+
 
 const currentBGimg = document.querySelector('#GameBackground');
-let currentRoomID = "startingBedroom"
+let currentRoomID = "startingBedroom";
+
+const bossHP = document.querySelector("#bossHP");
+const bossHPlabel = document.querySelector("#bossHPlabel");
+const bossHPfill = document.querySelector("#bossHPfill");
+const bossHPtext = document.querySelector("#bossHPtext");
+let currentBossHP = 0;
+let currentBossMaxHP = 0;
+
+
+
 
 //arrows appearance
 function updateArrows() {
@@ -397,6 +436,15 @@ function updateArrows() {
   } else {
       forwardArrow.classList.add("hidden");
   }
+
+  if (currentRoom.boss) {
+  leftArrow.classList.add("hidden");
+  rightArrow.classList.add("hidden");
+  backArrow.classList.add("hidden");
+  forwardArrow.classList.add("hidden");
+  return;
+}
+
 }
 
 //inventory
@@ -620,10 +668,21 @@ function renderHotspots() {
     if (hotspot.rotate) {
       hotspotDiv.style.transform = `rotate(${hotspot.rotate}deg)`;
     }
+
     hotspotDiv.addEventListener("click", () => {
-      const imageSrc = overlayImages[hotspot.overlay];
-      if (!imageSrc) return;
-      openOverlay(imageSrc, hotspot);
+    const imageSrc = overlayImages[hotspot.overlay];
+    if (!imageSrc) return;
+
+    if (hotspot.overlay === "cabinet") {
+        sfx.cabinet.currentTime = 0;
+        sfx.cabinet.play();
+    }
+    if (hotspot.overlay === "drawer") {
+        sfx.drawer.currentTime = 0;
+        sfx.drawer.play();
+    }
+
+    openOverlay(imageSrc, hotspot);
     });
 
     hotspotsContainer.appendChild(hotspotDiv);
@@ -634,21 +693,106 @@ function renderHotspots() {
 //clear hotspots
 function clearAllHotspotItems() {
   for (const room of Object.values(Rooms)) {
-    room.hotspots?.forEach(h => delete h.items);
+    room.hotspots?.forEach(hotspot => {
+      delete hotspot.items;
+    });
+  }
+}
+
+//jumpscares
+const jumpscare = document.querySelector("#jumpscare");
+const jumpscareImg = document.querySelector("#jumpscareImg");
+
+function playJumpscare(imgSrc, durationMs = 600) {
+  let didPlaySound = false;
+
+  const playNow = () => {
+    sfx.jumpscare.currentTime = 0;
+    sfx.jumpscare.play().catch(() => {});
+    didPlaySound = true;
+  };
+
+  if (audioUnlocked) {
+    playNow();
+  } else {
+    pendingJumpscare = () => playNow();
+  }
+
+  jumpscareImg.src = imgSrc;
+  jumpscare.classList.remove("hidden");
+
+  setTimeout(() => {
+    jumpscare.classList.add("hidden");
+    jumpscareImg.src = "";
+  }, durationMs);
+
+  return didPlaySound;
+}
+
+
+
+save.jumpscaresPlayed = save.jumpscaresPlayed || {};
+
+//bosses
+const bossImage = document.querySelector("#bossImage");
+
+
+//clear bosses
+function clearAllBosses() {
+  for (const room of Object.values(Rooms)) {
+    if (room.boss) {
+      delete room.boss;
+    }
+  }
+
+  save.bosses = {};
+  save.jumpscaresPlayed = {};
+  saveGame();
+}
+
+
+function renderRoom() {
+  const currentRoom = Rooms[currentRoomID];
+
+  currentBGimg.src = currentRoom.bg;
+
+  updateArrows();
+  renderHotspots();
+
+  if (currentRoom.boss) {
+    bossHP.classList.remove("hidden");
+
+    currentBossMaxHP = currentRoom.boss.maxHP;
+    currentBossHP = currentBossMaxHP;
+
+    bossHPlabel.textContent = currentRoom.boss.name;
+    bossHPtext.textContent = `${currentBossHP} / ${currentBossMaxHP}`;
+    bossHPfill.style.width = "100%";
+
+
+    bossImage.src = currentRoom.boss.img;
+    bossImage.classList.remove("hidden");
+
+
+    save.jumpscaresPlayed = save.jumpscaresPlayed || {};
+
+    if (!save.jumpscaresPlayed[currentRoom.boss.id]) {
+      const playedNow = playJumpscare(currentRoom.boss.jumpscareImg);
+
+      if (playedNow) {
+        save.jumpscaresPlayed[currentRoom.boss.id] = true;
+        saveGame();
+      }
+    }
+
+  } else {
+
+    bossHP.classList.add("hidden");
+    bossImage.classList.add("hidden");
   }
 }
 
 
-//changing rooms
-function renderRoom() {
-  const currentRoom = Rooms[currentRoomID];
-  currentBGimg.src = currentRoom.bg;
-  updateArrows();
-  renderHotspots();
-}
-
-//initial
-renderRoom();
 
 if (mode === "story") {
 
@@ -677,6 +821,8 @@ if (mode === "story") {
 
     // PARENTS BEDROOM
     Rooms.parentsBedroom.exits.back = "exitHallway";
+
+    renderRoom();
 
     const leftArrow = document.querySelector("#arrowLeft");
     leftArrow.addEventListener("click", () => {
@@ -749,27 +895,40 @@ if (mode === "story") {
 }
 
 if (mode === "survival") {
-    if (mode === "arcade") {
   clearAllHotspotItems();
+  clearAllBosses();
 }
 
-}
 
-//SFX
-
-const walkSFX = new Audio("Audios/Walkingsfx.mp3");
-walkSFX.volume = 0.6;
 
 //BGM
 
 const bgm = new Audio("Audios/AreYouAloneBGM.mp3");
 bgm.loop = true;
-bgm.volume = 0.35;
+bgm.volume = 0.30;
 
 const gate = document.getElementById("audioGate");
 
 function unlockAudio() {
+  audioUnlocked = true;
+
+  Object.values(sfx).forEach(a => {
+    try {
+      a.play().then(() => {
+        a.pause();
+        a.currentTime = 0;
+      }).catch(() => {});
+    } catch (err) {}
+  });
+
   bgm.play().catch(() => {});
+
+    if (pendingJumpscare) {
+      pendingJumpscare();
+      save.jumpscaresPlayed["boss1"] = true; // safe because it's first-time only
+      saveGame();
+      pendingJumpscare = null;
+    }
 
   sessionStorage.setItem("audioUnlocked", "true");
 
@@ -780,8 +939,11 @@ function unlockAudio() {
   document.removeEventListener("touchstart", unlockAudio);
 }
 
+
+
 // If already unlocked this session, try to play + hide gate
 if (sessionStorage.getItem("audioUnlocked") === "true") {
+  audioUnlocked = true; 
   bgm.play().catch(() => {});
   if (gate) gate.style.display = "none";
 } else {

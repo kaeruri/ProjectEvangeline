@@ -1041,6 +1041,36 @@ body {
   transition: width 0.25s ease;
 }
 
+/*jumpscares (bosses)*/
+
+#bossImage{
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  max-height: 80%;
+  z-index: 15;
+  pointer-events: none; /* for now */
+}
+
+
+#jumpscare{
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#jumpscareImg{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+
 /*Hotspots*/
 
 #hotspots {
