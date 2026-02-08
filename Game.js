@@ -371,7 +371,7 @@ const Rooms = {
 
 //win
 Rooms.endingRoom = {
-  bg: "Assets/Ending.png",
+  bg: "Assets/ProjectEvangelineLogin.png",
   exits: {},
   hotspots: []
 };
@@ -407,6 +407,9 @@ const ITEM_EFFECTS = {
   needle: {
     type: "weapon",
     damage: 3
+  },
+  key: {
+    type: "key"
   }
 };
 
@@ -447,6 +450,7 @@ save.story = save.story || {
   lastRoomID: null
 };
 
+save.story.keyFound = save.story.keyFound || false;
 
 //story phases
 
@@ -777,7 +781,7 @@ function handleRoomEnterDialogue() {
   const phase = save.story.currentPhase;
   const roomID = currentRoomID;
 
-
+  // PHASE 1 — Bedroom
   if (
     phase === PHASES.BEDROOM &&
     roomID === "startingBedroom"
@@ -791,7 +795,7 @@ function handleRoomEnterDialogue() {
     return;
   }
 
-
+  // PHASE 2 — Living Room
   if (
     phase === PHASES.LIVING_ROOM &&
     roomID === "livingRoom"
@@ -805,19 +809,21 @@ function handleRoomEnterDialogue() {
     return;
   }
 
-    if (
+  // PHASE 3 — Dining Area
+  if (
     phase === PHASES.DINING_NEEDLE &&
     roomID === "diningArea"
-    ) {
+  ) {
     const key = "phase3_dining_enter";
     if (!save.story.dialoguesPlayed[key]) {
-        startDialogue(key, DIALOGUES[key]);
-        save.story.lastRoomID = roomID;
-        saveGame();
+      startDialogue(key, DIALOGUES[key]);
+      save.story.lastRoomID = roomID;
+      saveGame();
     }
     return;
-    }
+  }
 }
+
 
 
 
@@ -873,7 +879,6 @@ let currentBossMaxHP = 0;
 
 
 
-//arrows appearance
 function updateArrows() {
   const currentRoom = Rooms[currentRoomID];
 
@@ -882,75 +887,46 @@ function updateArrows() {
   const backArrow = document.querySelector("#arrowBackward");
   const forwardArrow = document.querySelector("#arrowForward");
 
-  if (currentRoom.exits.left) {
-    leftArrow.classList.remove("hidden");
-  } else {
-    leftArrow.classList.add("hidden");
-  }
 
-  if (currentRoom.exits.right) {
-    rightArrow.classList.remove("hidden");
-  } else {
-    rightArrow.classList.add("hidden");
-  }
+  leftArrow.classList.add("hidden");
+  rightArrow.classList.add("hidden");
+  backArrow.classList.add("hidden");
+  forwardArrow.classList.add("hidden");
 
-  if (currentRoom.exits.back) {
-    backArrow.classList.remove("hidden");
-  } else {
-    backArrow.classList.add("hidden");
-  }
 
-  if (currentRoom.exits.forward) {
-    forwardArrow.classList.remove("hidden");
-  } else {
-    forwardArrow.classList.add("hidden");
-  }
+  if (currentRoom.exits.left) leftArrow.classList.remove("hidden");
+  if (currentRoom.exits.right) rightArrow.classList.remove("hidden");
+  if (currentRoom.exits.back) backArrow.classList.remove("hidden");
+  if (currentRoom.exits.forward) forwardArrow.classList.remove("hidden");
+
 
   if (currentRoom.boss) {
     leftArrow.classList.add("hidden");
     rightArrow.classList.add("hidden");
     backArrow.classList.add("hidden");
     forwardArrow.classList.add("hidden");
+    return;
   }
 
-    // STORY MODE — key exit control
-    if (mode === "story") {
-    const phase = save.story.currentPhase;
 
-    // hide forward arrow by default
-    forwardArrow.classList.add("hidden");
+  if (mode !== "story") return;
 
-    // FREE ROAM + key found + exit hallway
+  const phase = save.story.currentPhase;
+
+
+  forwardArrow.classList.add("hidden");
+    // FREE ROAM + KEY + EXIT HALLWAY
     if (
-        phase === PHASES.FREE_ROAM &&
-        save.story.keyFound &&
-        currentRoomID === "exitHallway"
+    mode === "story" &&
+    save.story.currentPhase === PHASES.FREE_ROAM &&
+    save.story.keyFound &&
+    currentRoomID === "exitHallway"
     ) {
-        forwardArrow.classList.remove("hidden");
-    }
+    forwardArrow.classList.remove("hidden");
     }
 
-    if (mode === "story") {
-    const phase = save.story.currentPhase;
-
-    // hide by default
-    forwardArrow.classList.add("hidden");
-
-    if (
-        phase === PHASES.FREE_ROAM &&
-        save.story.keyFound &&
-        currentRoomID === "exitHallway"
-    ) {
-        forwardArrow.classList.remove("hidden");
-
-        // dynamically allow forward exit
-        Rooms.exitHallway.exits.forward = "endingRoom";
-    } else {
-        // prevent accidental access
-        delete Rooms.exitHallway.exits.forward;
-    }
-    }
 }
+
 
 
 //inventory
@@ -960,7 +936,7 @@ if (save.equippedSlot === undefined) save.equippedSlot = null;
 save.collected = save.collected || {};
 
 function collectItem(item) {
-  if (dialogueLocked) return;
+if (dialogueLocked) return;
   if (save.collected[item.id]) return;
 
   if (save.inventory.length >= 4) {
@@ -975,6 +951,9 @@ function collectItem(item) {
   }
 
   save.collected[item.id] = true;
+  save.collected = { ...save.collected }; // forces update (prevents weird reference bugs)
+  saveGame();
+
 
   save.inventory.push({
     id: item.id,
@@ -1025,20 +1004,19 @@ function collectItem(item) {
     ) {
     const keyDialogue = "phase6_key_found";
 
+    // Always unlock exit
+    save.story.keyFound = true;
+    saveGame();
+    updateArrows();
+
+    // Only play dialogue once
     if (!save.story.dialoguesPlayed[keyDialogue]) {
         startDialogue(
         keyDialogue,
-        DIALOGUES[keyDialogue],
-        () => {
-            // ONLY after dialogue finishes
-            save.story.keyFound = true;
-            saveGame();
-            updateArrows();
-        }
+        DIALOGUES[keyDialogue]
         );
     }
     }
-
 
 
 }
@@ -1192,7 +1170,7 @@ function onBossDefeated(boss) {
 
   if (mode === "story" && boss.id === "boss1") {
     startDialogue(
-      "phase4_boss_defeat",
+      "phase4_boss1_defeat",
       DIALOGUES.phase4_boss1_defeat
     );
   }
@@ -1208,16 +1186,18 @@ function onBossDefeated(boss) {
     );
   }
 
-  if (mode === "story" && boss.id === "boss3") {
+    if (mode === "story" && boss.id === "boss3") {
     startDialogue(
-      "phase6_boss3_defeat",
-      DIALOGUES.phase6_boss3_defeat,
-      () => {
-        startPhase(PHASES.ENDING);
+        "phase6_boss3_defeat",
+        DIALOGUES.phase6_boss3_defeat,
+        () => {
+        startPhase(PHASES.FREE_ROAM);   
         updateArrows();
-      }
+        renderRoom();               
+        }
     );
-  }
+    }
+
 }
 
 
@@ -1332,9 +1312,16 @@ function renderOverlayItems(hotspot) {
     img.style.width = item.width + "%";
 
     img.addEventListener("click", (e) => {
-      e.stopPropagation();
-      collectItem(item);
-      img.remove();
+    e.stopPropagation();
+
+    const before = !!save.collected[item.id];
+    collectItem(item);
+    const after = !!save.collected[item.id];
+
+    // ONLY remove if item was actually collected
+    if (!before && after) {
+        img.remove();
+    }
     });
 
     overlayItems.appendChild(img);
