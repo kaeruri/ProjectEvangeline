@@ -369,6 +369,14 @@ const Rooms = {
 
 };
 
+//win
+Rooms.endingRoom = {
+  bg: "Assets/Ending.png",
+  exits: {},
+  hotspots: []
+};
+
+
 //items
 
 const ITEM_EFFECTS = {
@@ -561,14 +569,15 @@ function canMove(direction) {
 }
 
 function setupPhaseContent() {
-  if (mode !== "story") return; 
+  if (mode !== "story") return;
 
   const phase = save.story.currentPhase;
+
 
   if (phase === PHASES.BOSS_1) {
     const kitchen = Rooms.kitchen;
 
-    if (!kitchen.boss) {
+    if (!kitchen.boss && !save.bosses?.boss1) {
       kitchen.boss = {
         id: "boss1",
         name: "???",
@@ -579,7 +588,25 @@ function setupPhaseContent() {
       };
     }
   }
+
+
+  if (phase === PHASES.FREE_ROAM) {
+    const exitHallway = Rooms.exitHallway;
+
+    if (!exitHallway.boss && !save.bosses?.boss3) {
+      exitHallway.boss = {
+        id: "boss3",
+        name: "???",
+        maxHP: 100,
+        attackDamage: 12,
+        img: "Assets/Boss3.png",
+        jumpscareImg: "Assets/Boss3Jumpscare.png"
+      };
+    }
+  }
 }
+
+
 
 
 
@@ -707,7 +734,7 @@ const DIALOGUES = {
     { speaker: "BUNNY", text: "If you turn back now, there is an equal chance of you running into something unpleasant."},
     { speaker: "YOU", text: "..." },
     { speaker: "YOU", text: "Alright...let's move on..." },
-    { speaker: "YOU", text: "Remember to look through the furiture here too, anything could be of great help to us." }
+    { speaker: "BUNNY", text: "Remember to look through the furiture, anything could be of great help to us." }
   ],
   phase4_items_ready: [
     { speaker: "BUNNY", text: "Aren't you lucky." },
@@ -715,6 +742,32 @@ const DIALOGUES = {
     { speaker: "BUNNY", text: "You should use those bandages now...or you could use them later...better late than never I guess." },
     { speaker: "SYSTEM", text: "(EQUIP HEALING ITEMS THEN PRESS 'E' TO HEAL)" },
     { speaker: "BUNNY", text: "We should get moving now."}
+  ],
+  phase5_boss2_defeat: [
+    { speaker: "YOU", text: "..."},
+    { speaker: "BUNNY", text: "What luck you must have. Thats two in a row."},
+    { speaker: "YOU", text: "I really want to get out of here..."},
+    { speaker: "BUNNY", text: "Then I suggest we move on, quickly."},
+    { speaker: "YOU", text: "Let's try to search for a way out."},
+    { speaker: "BUNNY", text: "Lead the way...this is your 'house' afterall."},
+  ],
+  phase6_boss3_defeat: [
+    { speaker: "YOU", text: "*cries*"},
+    { speaker: "YOU", text: "I want to get out of here..."},
+    { speaker: "BUNNY", text: "At least we have gone through the worst possible senario..."},
+    { speaker: "YOU", text: "Well thanks for doing almost nothing"},
+    { speaker: "BUNNY", text: "Rude much"},
+    { speaker: "BUNNY", text: "My guess is we should be looking for a key and an exit right now rather than crying and complaining."},
+    { speaker: "YOU", text: "Easy for you to say..."},
+    { speaker: "BUNNY", text: "The longer you take to start looking, the longer you'll stay with these unpleasant tings."},
+    { speaker: "YOU", text: "...I'll go look for them right now"},
+  ],
+  phase6_key_found: [ 
+    { speaker: "YOU", text: "A key?"}, 
+    { speaker: "BUNNY", text: "Good News, if there's a key that means there's an exit."}, 
+    { speaker: "BUNNY", text: "This 'house' is not your real house, it does not follow logic and common sense either."}, 
+    { speaker: "BUNNY", text: "A new exit might have appeared somewhere."}, 
+    { speaker: "YOU", text: "Let's hurry and look for it so we can get out of here..."}, 
   ]
 };
 
@@ -764,9 +817,7 @@ function handleRoomEnterDialogue() {
     }
     return;
     }
-
 }
-
 
 
 
@@ -861,6 +912,44 @@ function updateArrows() {
     backArrow.classList.add("hidden");
     forwardArrow.classList.add("hidden");
   }
+
+    // STORY MODE — key exit control
+    if (mode === "story") {
+    const phase = save.story.currentPhase;
+
+    // hide forward arrow by default
+    forwardArrow.classList.add("hidden");
+
+    // FREE ROAM + key found + exit hallway
+    if (
+        phase === PHASES.FREE_ROAM &&
+        save.story.keyFound &&
+        currentRoomID === "exitHallway"
+    ) {
+        forwardArrow.classList.remove("hidden");
+    }
+    }
+
+    if (mode === "story") {
+    const phase = save.story.currentPhase;
+
+    // hide by default
+    forwardArrow.classList.add("hidden");
+
+    if (
+        phase === PHASES.FREE_ROAM &&
+        save.story.keyFound &&
+        currentRoomID === "exitHallway"
+    ) {
+        forwardArrow.classList.remove("hidden");
+
+        // dynamically allow forward exit
+        Rooms.exitHallway.exits.forward = "endingRoom";
+    } else {
+        // prevent accidental access
+        delete Rooms.exitHallway.exits.forward;
+    }
+    }
 }
 
 
@@ -871,6 +960,7 @@ if (save.equippedSlot === undefined) save.equippedSlot = null;
 save.collected = save.collected || {};
 
 function collectItem(item) {
+  if (dialogueLocked) return;
   if (save.collected[item.id]) return;
 
   if (save.inventory.length >= 4) {
@@ -924,6 +1014,28 @@ function collectItem(item) {
 
     if (!save.story.dialoguesPlayed[key]) {
         startDialogue(key, DIALOGUES[key]);
+    }
+    }
+
+    // FREE ROAM — key pickup
+    if (
+    mode === "story" &&
+    save.story.currentPhase === PHASES.FREE_ROAM &&
+    item.id === "key"
+    ) {
+    const keyDialogue = "phase6_key_found";
+
+    if (!save.story.dialoguesPlayed[keyDialogue]) {
+        startDialogue(
+        keyDialogue,
+        DIALOGUES[keyDialogue],
+        () => {
+            // ONLY after dialogue finishes
+            save.story.keyFound = true;
+            saveGame();
+            updateArrows();
+        }
+        );
     }
     }
 
@@ -1079,9 +1191,36 @@ function onBossDefeated(boss) {
   updateArrows();
 
   if (mode === "story" && boss.id === "boss1") {
-    startDialogue("phase4_boss1_defeat", DIALOGUES.phase4_boss1_defeat);
+    startDialogue(
+      "phase4_boss_defeat",
+      DIALOGUES.phase4_boss1_defeat
+    );
+  }
+
+  if (mode === "story" && boss.id === "boss2") {
+    startDialogue(
+      "phase5_boss2_defeat",
+      DIALOGUES.phase5_boss2_defeat,
+      () => {
+        startPhase(PHASES.FREE_ROAM);
+        updateArrows();
+      }
+    );
+  }
+
+  if (mode === "story" && boss.id === "boss3") {
+    startDialogue(
+      "phase6_boss3_defeat",
+      DIALOGUES.phase6_boss3_defeat,
+      () => {
+        startPhase(PHASES.ENDING);
+        updateArrows();
+      }
+    );
   }
 }
+
+
 
 
 document.addEventListener("click", (e) => {
@@ -1518,20 +1657,38 @@ if (mode === "story") {
         renderRoom();
     });
 
-    const forwardArrow = document.querySelector("#arrowForward")
+
+    const forwardArrow = document.querySelector("#arrowForward");
+
+    if (forwardArrow && !forwardArrow.dataset.bound) {
+    forwardArrow.dataset.bound = "1";
+
     forwardArrow.addEventListener("click", () => {
         if (!canMove("forward")) return;
 
-        const prevRoomID = currentRoomID;
         const currentRoom = Rooms[currentRoomID];
-        const nextRoomID = currentRoom.exits.forward;
-
+        const nextRoomID = currentRoom?.exits?.forward;
         if (!nextRoomID) return;
 
-        currentRoomID = nextRoomID
+        const prevRoomID = currentRoomID;
+        currentRoomID = nextRoomID;
+
+        // ENDING TRANSITION
+        if (
+        mode === "story" &&
+        prevRoomID === "exitHallway" &&
+        currentRoomID === "endingRoom"
+        ) {
+        stopBossFightLoop();       // safety
+        stopWhispers();
+        startPhase(PHASES.ENDING);
+        } else {
         handlePhaseProgression(prevRoomID);
+        }
+
         renderRoom();
     });
+    }
 
 }
 
