@@ -654,7 +654,7 @@ function startDialogue(dialogueKey, lines, onComplete = null) {
 function renderDialogueLine() {
   const line = activeDialogue.lines[dialogueIndex];
   dialogueText.textContent = `${line.speaker}: ${line.text}`;
-  if (dialogueHint) dialogueHint.textContent = "(click anywhere to continue)";
+  if (dialogueHint) dialogueHint.textContent = "(click on dialogue box to continue)";
 }
 
 function endDialogue() {
@@ -690,18 +690,14 @@ function advanceDialogue() {
 }
 
 
-document.addEventListener(
-  "click",
-  (e) => {
-    if (!dialogueLocked) return;
+dialogueBox.addEventListener("click", (e) => {
+  if (!dialogueLocked) return;
 
-    e.preventDefault();
-    e.stopPropagation();
+  e.preventDefault();
+  e.stopPropagation();
 
-    advanceDialogue();
-  },
-  true
-);
+  advanceDialogue();
+});
 
 const DIALOGUES = {
   phase1_bedroom_enter: [
@@ -1732,15 +1728,14 @@ if (mode === "story") {
     saveGame();
 
     startPhase(save.story.currentPhase || PHASES.BEDROOM);
-    renderRoom();
-
-    // Only play if first phase + first room
-    if (
-    save.story.currentPhase === PHASES.BEDROOM &&
-    currentRoomID === "startingBedroom"
-    ) {
-    playEyeOpeningAnimation();
+    if (save.story.currentPhase === PHASES.BEDROOM && currentRoomID === "startingBedroom") {
+      playEyeOpeningAnimation(() => {
+        renderRoom(); // dialogue triggers after animation
+      });
+    } else {
+      renderRoom();
     }
+
 
     handlePhaseProgression();
 
