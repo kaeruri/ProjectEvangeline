@@ -1640,6 +1640,26 @@ function renderRoom() {
   renderHotspots();
 
   if (mode === "story") handleRoomEnterDialogue();
+  if (mode === "story") {
+
+    if (save.story.currentPhase === PHASES.ENDING) {
+
+      stopMainBGM(); 
+
+      if (endingBGM.paused) {
+        endingBGM.play().catch(() => {});
+      }
+
+    } else {
+
+      stopEndingBGM(); 
+
+      if (bgm.paused) {
+        bgm.play().catch(() => {});
+      }
+
+    }
+  }
 
   if (currentRoom.boss) {
     bossHP.classList.remove("hidden");
@@ -1899,7 +1919,21 @@ function stopWhispers() {
 
 const bgm = new Audio("Audios/AreYouAloneBGM.mp3");
 bgm.loop = true;
-bgm.volume = 0.25;
+bgm.volume = 0.3;
+
+const endingBGM = new Audio("Audios/HospitalBGM.mp3");
+endingBGM.loop = true;
+endingBGM.volume = 0.6;
+
+function stopMainBGM() {
+  bgm.pause();
+  bgm.currentTime = 0;
+}
+
+function stopEndingBGM() {
+  endingBGM.pause();
+  endingBGM.currentTime = 0;
+}
 
 const gate = document.getElementById("audioGate");
 
