@@ -1,5 +1,3 @@
-localStorage.removeItem("save_story");
-
 const mode = localStorage.getItem("gameMode");
 let audioUnlocked = false;
 let pendingJumpscare = null;
@@ -787,6 +785,37 @@ const DIALOGUES = {
     { speaker: "BUNNY", text: "This 'house' is not your real house, it does not follow logic and common sense either."}, 
     { speaker: "BUNNY", text: "A new exit might have appeared somewhere."}, 
     { speaker: "YOU", text: "Let's hurry and look for it so we can get out of here..."}, 
+  ],
+  phase8_escape: [
+    { speaker: "YOU", text: "Wait...what's going on?"},
+    { speaker: "YOU", text: "What is this place?"},
+    { speaker: "BUNNY", text: "You'll find out soon enough."},
+    { speaker: "DOCTOR", text: "Update on patient 067?"},
+    { speaker: "OTHER DOCTOR", text: "Her condition stabilised not long ago, however she is still unconcious."},
+    { speaker: "DOCTOR", text: "Keep her under careful supervision. Patient 067, Evangeline, suffers from major trauma."},
+    { speaker: "YOU", text: "Evangeline...?"},
+    { speaker: "DOCTOR", text: "A car accident took the lives of her parents and sister...she's the lone survival of her family."}, 
+    { speaker: "DOCTOR", text: "She often experiences severe hallucinations and manic episodes, this is the first time she has ended up losing conciousness."},
+    { speaker: "DOCTOR", text: "We must be more careful."}, 
+    { speaker: "YOU", text: "I'm starting to remember..."},
+    { speaker: "YOU", text: "That...that's me..."},
+    { speaker: "BUNNY", text: "It's finally coming back to you."},
+    { speaker: "YOU", text: "This is a mental hospital..."},
+    { speaker: "BUNNY", text: "You're still unconcious, we are currently still in your mind"},
+    { speaker: "YOU", text: "So that house...it was all created by my mind...?"},
+    { speaker: "BUNNY", text: "Everything here is a result of your unstable mental state"},
+    { speaker: "YOU", text: "Those entities..."},
+    { speaker: "YOU", text: "They were...my parents..."},
+    { speaker: "YOU", text: "...and my sister"},
+    { speaker: "BUNNY", text: "A word of advice, try not to have another episode"},
+    { speaker: "BUNNY", text: "This 'place' is unpredictable and dangerous."},
+    { speaker: "BUNNY", text: "It changes with the state of your mind"},
+    { speaker: "BUNNY", text: "The next time you come back here it will be far worse"},
+    { speaker: "BUNNY", text: "If you don't manage to get out, you may never regain conciousness."},
+    { speaker: "YOU", text: "I..."},
+    { speaker: "BUNNY", text: "It's time for you to wake up now."},
+    { speaker: "YOU", text: "wait....bunny!"},
+
   ]
 };
 
@@ -837,6 +866,24 @@ function handleRoomEnterDialogue() {
     }
     return;
   }
+
+    // PHASE 8 — Ending (enter ending room)
+  if (
+    phase === PHASES.ENDING &&
+    roomID === "endingRoom"
+  ) {
+    const key = "phase8_escape";
+    if (!save.story.dialoguesPlayed[key]) {
+      startDialogue(key, DIALOGUES[key], () => {
+        showCompletedScreen();
+      });
+
+      save.story.lastRoomID = roomID;
+      saveGame();
+    }
+    return;
+  }
+
 }
 
 
@@ -1217,8 +1264,6 @@ function onBossDefeated(boss) {
 }
 
 
-
-
 document.addEventListener("click", (e) => {
   const currentRoom = Rooms[currentRoomID];
   if (!currentRoom.boss) return;
@@ -1325,7 +1370,7 @@ function respawnPlayer() {
   renderRoom();
 }
 
-//survival death
+//survival
 function handleSurvivalDeath() {
   dialogueLocked = true;
 
@@ -1537,6 +1582,56 @@ function clearAllBosses() {
   saveGame();
 }
 
+//completed screen
+function showCompletedScreen() {
+  // hard lock gameplay
+  dialogueLocked = true;
+  stopBossFightLoop();
+  stopWhispers();
+
+  // hide interactables
+  document.querySelector("#hotspots")?.classList.add("hidden");
+  document.querySelector("#arrowLeft")?.classList.add("hidden");
+  document.querySelector("#arrowRight")?.classList.add("hidden");
+  document.querySelector("#arrowBackward")?.classList.add("hidden");
+  document.querySelector("#arrowForward")?.classList.add("hidden");
+
+  const screen = document.querySelector("#completedScreen");
+  if (screen) screen.classList.remove("hidden");
+
+  const btn = document.querySelector("#completedBtn");
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      window.location.href = "MainMenu.html"; 
+    });
+  }
+}
+
+//animations
+function playEyeOpeningAnimation(onComplete = null) {
+  const overlay = document.getElementById("eyeOverlay");
+  if (!overlay) return;
+
+  dialogueLocked = true; // lock player during animation
+
+
+  setTimeout(() => {
+    overlay.classList.add("open");
+  }, 200);
+
+
+  setTimeout(() => {
+    overlay.style.display = "none";
+    dialogueLocked = false;
+
+    if (typeof onComplete === "function") {
+      onComplete();
+    }
+  }, 2000);
+}
+
+
 
 function renderRoom() {
   if (mode === "story") setupPhaseContent();
@@ -1638,6 +1733,15 @@ if (mode === "story") {
 
     startPhase(save.story.currentPhase || PHASES.BEDROOM);
     renderRoom();
+
+    // Only play if first phase + first room
+    if (
+    save.story.currentPhase === PHASES.BEDROOM &&
+    currentRoomID === "startingBedroom"
+    ) {
+    playEyeOpeningAnimation();
+    }
+
     handlePhaseProgression();
 
 

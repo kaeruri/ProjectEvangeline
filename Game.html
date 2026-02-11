@@ -12,6 +12,11 @@
 <body id="GameBody">
     <div id="scene">
       <img src="Assets/ProjectEvangelineBedroomPOV.png" id="GameBackground" alt="StartingBedroom">
+      
+      <div id="eyeOverlay">
+        <div class="eyelid top"></div>
+        <div class="eyelid bottom"></div>
+      </div>
 
       <div id="dialogueBox" class="hidden">
         <p id="dialogueText">what time is it? why do i feel so dizzy?</p>
@@ -75,6 +80,13 @@
       <img id="bossImage" class="hidden" />
       <div id="damageFlash"></div>
     </div>
+    <div id="completedScreen" class="hidden">
+      <div class="completed-box">
+        <h1>COMPLETED</h1>
+        <button id="completedBtn">Back to Menu</button>
+      </div>
+    </div>
+
   <script src="Game.js"></script>
 </body>
 </html>
