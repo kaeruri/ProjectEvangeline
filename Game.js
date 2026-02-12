@@ -10,12 +10,6 @@ function setSurvivalHUDVisible(isVisible) {
 }
 
 setSurvivalHUDVisible(mode === "survival");
-
-if (mode === "survival") {
-  document.body.classList.add("debug-hotspots");
-} else {
-  document.body.classList.remove("debug-hotspots");
-}
 const BUNNY_FBX_SRC = "Assets/bunny.fbx";
 const KEY_FBX_SRC = "Assets/key.fbx";
 

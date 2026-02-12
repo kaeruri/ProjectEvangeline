@@ -1147,12 +1147,7 @@ body.debug-hotspots .hotspot {
   position: absolute;
   cursor: pointer;
 }
-.overlay-item {
-  position: absolute;
-  cursor: pointer;
-  border: 2px solid red; /* DEBUG */
-  background: rgba(255, 0, 0, 0.2); /* DEBUG */
-}
+
 .overlay-item:hover {
   filter: brightness(1.1);
 }
