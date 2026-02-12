@@ -1726,9 +1726,10 @@ function bindArrowControlsOnce() {
 
         if (mode === "survival") {
           stopSurvivalTimer?.();
+          submitSurvivalRunToLeaderboard(survivalElapsedMs); 
           showCompletedScreen();
         }
-
+        
       } else if (mode === "story") {
         handlePhaseProgression(prevRoomID);
       }
@@ -3003,18 +3004,23 @@ let survivalPausedTotalMs = 0;
 const survivalTimerBox = document.querySelector("#survivalTimer");
 const survivalTimerValue = document.querySelector("#survivalTimerValue");
 
-function formatSurvivalTime(ms) {
+function formatTimeMs(ms) {
+  if (ms == null) return "—";
+
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   const tenths = Math.floor((ms % 1000) / 100);
-  return `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}.${tenths}`;
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${tenths}`;
 }
+
 
 function updateSurvivalTimerUI(ms) {
   if (!survivalTimerValue) return;
-  survivalTimerValue.textContent = formatSurvivalTime(ms);
+  survivalTimerValue.textContent = formatTimeMs(ms);
 }
+
 
 function startSurvivalTimer() {
   if (mode !== "survival") return;
@@ -3072,24 +3078,57 @@ function getSurvivalScoreFromTime(ms) {
   return Math.max(0, base - penalty);
 }
 
+//submit to leaderboard
+function submitSurvivalRunToLeaderboard(timeMs) {
+  const username = localStorage.getItem("currentUser") || "Unknown";
+
+  const score = getSurvivalScoreFromTime(timeMs);
+
+  const leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+
+  leaderboard.push({
+    username,
+    timeMs,
+    score
+  });
+
+ leaderboard.sort((a, b) => {
+    const s = (b.score ?? 0) - (a.score ?? 0);
+    if (s !== 0) return s;
+    return (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity);
+  });
+
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard.slice(0, 50)));
+
+  const saveKey = "save_" + username;
+  const saveData = JSON.parse(localStorage.getItem(saveKey)) || {};
+
+  const prevHigh = saveData.highestScore ?? 0;
+  const prevFast = saveData.fastestClearTimeMs ?? null;
+
+  if (score > prevHigh) saveData.highestScore = score;
+  if (prevFast == null || timeMs < prevFast) saveData.fastestClearTimeMs = timeMs;
+
+  localStorage.setItem(saveKey, JSON.stringify(saveData));
+}
+
+
 
 //survivl base
 function initSurvivalBase() {
   localStorage.removeItem("save_survival");
+
   bunnyShownThisRun = false;
   dialogueLocked = false;
   isPaused = false;
-  saveGame();
   hidePauseOverlay();
   closeOverlay();
-
-
   const eye = document.getElementById("eyeOverlay");
   if (eye) eye.style.display = "none";
-
   randomizeSurvivalLayoutNewRun();
   placeSurvivalItemsNewRun();
   removeKeyFromAllHotspots();
+  save.survival = save.survival || {};  
   save.survival.keySpawned = false;
   save.survival.keyFound = false;
   saveGame();
@@ -3097,6 +3136,7 @@ function initSurvivalBase() {
   startSurvivalTimer();
   renderRoom();
 }
+
 
 
 if (mode === "survival") {
