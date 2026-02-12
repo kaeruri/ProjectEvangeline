@@ -1587,18 +1587,18 @@ function updateArrows() {
   }
 
   // SURVIVAL
-  if (mode === "survival") {
-    forwardArrow.classList.add("hidden");
-
-    if (save.survival?.keyFound && currentRoomID === "exitHallway") {
-      forwardArrow.classList.remove("hidden");
-      Rooms.exitHallway.exits.forward = "endingRoom";
-    } else {
-      delete Rooms.exitHallway.exits.forward;
-    }
-
-    return;
+  if (
+    mode === "survival" &&
+    save.survival?.keyFound &&
+    currentRoomID === "exitHallway"
+  ) {
+    forwardArrow.classList.remove("hidden");
+    Rooms.exitHallway.exits.forward = "endingRoom";
   }
+  if (mode === "survival" && (!save.survival?.keyFound || currentRoomID !== "exitHallway")) {
+  delete Rooms.exitHallway.exits.forward;
+  }
+
 
   if (mode !== "story") return;
 
@@ -1704,41 +1704,37 @@ function bindArrowControlsOnce() {
   }
 
   // FORWARD
-  if (forwardArrow && !forwardArrow.dataset.bound) {
-    forwardArrow.dataset.bound = "1";
+  if (forwardArrow) {
     forwardArrow.addEventListener("click", () => {
-      if (!canMove("forward")) return;
+      const next = Rooms[currentRoomID].exits.forward;
+      if (!next) return;
 
       const prevRoomID = currentRoomID;
-      const currentRoom = Rooms[currentRoomID];
-      const nextRoomID = currentRoom?.exits?.forward;
-      if (!nextRoomID) return;
+      currentRoomID = next;
 
-      walkSFX.currentTime = 0;
-      walkSFX.play().catch(() => {});
-      setTimeout(() => {
-        walkSFX.pause();
-        walkSFX.currentTime = 0;
-      }, 2150);
+      renderRoom();
+      updateArrows();
 
-      currentRoomID = nextRoomID;
-
-      // story ending logic stays story-only
-      if (
-        mode === "story" &&
-        prevRoomID === "exitHallway" &&
-        currentRoomID === "endingRoom"
-      ) {
+      // win handling
+      if (prevRoomID === "exitHallway" && currentRoomID === "endingRoom") {
         stopBossFightLoop();
         stopWhispers();
-        startPhase(PHASES.ENDING);
+
+        if (mode === "story") {
+          startPhase(PHASES.ENDING);
+        }
+
+        if (mode === "survival") {
+          stopSurvivalTimer?.();
+          showCompletedScreen();
+        }
+
       } else if (mode === "story") {
         handlePhaseProgression(prevRoomID);
       }
-
-      renderRoom();
     });
   }
+
 }
 
 //inventory
@@ -1775,7 +1771,7 @@ if (dialogueLocked) return;
     heal: def.heal,
     damage: def.damage
   });
-
+  
   phaseItemsCollected.push(item.id);
 
   saveGame();
@@ -1842,8 +1838,10 @@ if (dialogueLocked) return;
         );
     }
     }
-    // SURVIVAL — key pickup unlocks exit
+
+    // SURVIVAL — key pickup unlocks exitHallway forward
     if (mode === "survival" && item.id === "key") {
+      save.survival = save.survival || {};
       save.survival.keyFound = true;
       saveGame();
       updateArrows();
@@ -2368,8 +2366,7 @@ const BOSS_STYLE = {
   sb4: { left: "50%", top: "60%", width: "28vw", scale: 0.9 },
   sb5: { left: "50%", top: "60%", width: "21vw", scale: 1 },
   sb6: { left: "50%", top: "60%", width: "28vw", scale: 0.8 },
-  sb7: { left: "50%", top: "64%", width: "20vw", scale: 0.95 },
-  sb8: { left: "50%", top: "60%", width: "30vw", scale: 0.75 }
+  sb7: { left: "50%", top: "66%", width: "20vw", scale: 0.90 },
 };
 
 const bossImage = document.querySelector("#bossImage");
