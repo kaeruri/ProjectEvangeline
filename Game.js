@@ -231,14 +231,7 @@ const Rooms = {
       left: 43.75,
       top: 11,
       width: 9,
-      height: 7.5,
-      items: [{
-        id: "needle",
-        img: "Assets/ProjectEvangelineNeedle.png",
-        left: 35,
-        top: 68,
-        width: 15
-      }]
+      height: 7.5
     },
     {   
       id: "Dcabinet2",
@@ -297,14 +290,6 @@ const Rooms = {
       back: {},
       right: {}
     },
-    boss: { 
-      id: "boss1",
-      name: "FEMALE BOSS",
-      maxHP: 500,
-      img: "Assets/Boss1.png",
-      jumpscareImg: "Assets/Boss1jumpscare.png",
-      attackDamage: 3
-    },
     hotspots: [{
       id: "Kcabinet1",
       overlay: "cabinet",
@@ -357,22 +342,7 @@ const Rooms = {
       top: 46,
       width: 10,
       height: 4,
-      rotate: -4,
-      items: [{
-        id: "knife",
-        img: "Assets/ProjectEvangelineKnife.png",
-        left: 53,
-        top: 20,
-        width: 20
-      },
-      {   
-        id: "bandages",
-        img: "Assets/ProjectEvangelineBandages.png",
-        left: 22,
-        top: 50,
-        width: 20
-      }]
-
+      rotate: -4
     },
     {   
       id: "Kdrawer2",
@@ -390,14 +360,6 @@ const Rooms = {
     exits: {
       left: {}
     },
-    boss: {
-      id: "boss2",
-      name: "MALE BOSS",
-      maxHP: 500,
-      img: "Assets/Boss2.png",
-      jumpscareImg: "Assets/Boss2jumpscare.png",
-      attackDamage: 5
-    },
     hotspots: [{
       id: "Tcabinet1",
       overlay: "cabinet",
@@ -406,20 +368,6 @@ const Rooms = {
       width: 10,
       height: 21,
       rotate: 14,
-      items:[{
-        id: "bandages",
-        img: "Assets/ProjectEvangelineBandages.png",
-        left: 51,
-        top: 63,
-        width: 20
-      },
-      {   
-        id: "medkit",
-        img: "Assets/ProjectEvangelineMedkit.png",
-        left: 30,
-        top: 60,
-        width: 20
-      }]
     },
     {
       id: "Tdrawer1",
@@ -438,14 +386,6 @@ const Rooms = {
       left: {},
       right: {}
     },
-    boss: {
-      id: "boss3",
-      name: "FINAL BOSS",
-      maxHP: 1000,
-      img: "Assets/Boss3.png",
-      jumpscareImg: "Assets/Boss3jumpscare.png",
-      attackDamage: 6
-    }
   },
 
   parentsBedroom: {
@@ -461,13 +401,6 @@ const Rooms = {
       width: 4,
       height: 3,
       rotate: -4,
-      items: [{
-        id: "key",
-        img: "Assets/keyreplacement.png",
-        left: 53,
-        top: 20,
-        width: 15
-      }]
     },
     {   
       id: "Pdrawer2",
@@ -556,6 +489,114 @@ const STORY_ITEMS = new Set([
   "medkit",
   "key"
 ]);
+
+function findHotspot(roomID, hotspotID) {
+  const room = Rooms[roomID];
+  if (!room?.hotspots) return null;
+  return room.hotspots.find(h => h.id === hotspotID) || null;
+}
+
+function applyStoryContent() {
+  // bosses
+  Rooms.kitchen.boss = {
+    id: "boss1",
+    name: "FEMALE BOSS",
+    maxHP: 500,
+    img: "Assets/Boss1.png",
+    jumpscareImg: "Assets/Boss1jumpscare.png",
+    attackDamage: 3
+  };
+
+  Rooms.toilet.boss = {
+    id: "boss2",
+    name: "MALE BOSS",
+    maxHP: 500,
+    img: "Assets/Boss2.png",
+    jumpscareImg: "Assets/Boss2jumpscare.png",
+    attackDamage: 5
+  };
+
+  Rooms.exitHallway.boss = {
+    id: "boss3",
+    name: "FINAL BOSS",
+    maxHP: 1000,
+    img: "Assets/Boss3.png",
+    jumpscareImg: "Assets/Boss3jumpscare.png",
+    attackDamage: 6
+  };
+
+  // items in hotspots (story)
+  const dining1 = findHotspot("diningArea", "Dcabinet1");
+  if (dining1) {
+    dining1.items = [{
+      id: "needle",
+      img: "Assets/ProjectEvangelineNeedle.png",
+      left: 35,
+      top: 68,
+      width: 15
+    }];
+  }
+
+  const kdrawer1 = findHotspot("kitchen", "Kdrawer1");
+  if (kdrawer1) {
+    kdrawer1.items = [{
+      id: "knife",
+      img: "Assets/ProjectEvangelineKnife.png",
+      left: 53,
+      top: 20,
+      width: 20
+    },{
+      id: "bandages",
+      img: "Assets/ProjectEvangelineBandages.png",
+      left: 22,
+      top: 50,
+      width: 20
+    }];
+  }
+
+  const tcab1 = findHotspot("toilet", "Tcabinet1");
+  if (tcab1) {
+    tcab1.items = [{
+      id: "bandages",
+      img: "Assets/ProjectEvangelineBandages.png",
+      left: 51,
+      top: 63,
+      width: 20
+    },{
+      id: "medkit",
+      img: "Assets/ProjectEvangelineMedkit.png",
+      left: 30,
+      top: 60,
+      width: 20
+    }];
+  }
+
+  const pdrawer1 = findHotspot("parentsBedroom", "Pdrawer1");
+  if (pdrawer1) {
+    pdrawer1.items = [{
+      id: "key",
+      img: "Assets/keyreplacement.png",
+      left: 53,
+      top: 20,
+      width: 15
+    }];
+  }
+}
+
+function clearDynamicRoomContent() {
+  // remove bosses
+  for (const room of Object.values(Rooms)) {
+    if (room?.boss) delete room.boss;
+  }
+
+  // remove hotspot items
+  for (const room of Object.values(Rooms)) {
+    room.hotspots?.forEach(h => {
+      if (h.items) delete h.items;
+    });
+  }
+}
+
 
 const PHASES = {
   BEDROOM: 1,
@@ -2018,7 +2059,8 @@ if (mode === "story") {
     // PARENTS BEDROOM
     Rooms.parentsBedroom.exits.back = "exitHallway";
 
-
+    clearDynamicRoomContent();
+    applyStoryContent();
     startNewStoryRun();
 
     startPhase(PHASES.BEDROOM);
@@ -2132,8 +2174,7 @@ if (mode === "story") {
 }
 
 if (mode === "survival") {
-  clearAllHotspotItems();
-  clearAllBosses();
+  clearDynamicRoomContent();
 }
 
 // Pause menu bindings
