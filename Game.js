@@ -3218,6 +3218,9 @@ function wipeSurvivalRunState() {
 function initSurvivalBase() {
   wipeSurvivalRunState();
 
+  playerHP = playerMaxHP;
+  updatePlayerHPUI();
+
   bunnyShownThisRun = false;
   dialogueLocked = false;
   isPaused = false;
