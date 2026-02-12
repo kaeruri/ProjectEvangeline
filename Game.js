@@ -319,20 +319,16 @@ function hidePauseOverlay() {
 function pauseGame() {
   if (isPaused) return;
   isPaused = true;
-
-  // stop damage loop immediately so player doesn't die while paused
+  pauseSurvivalTimer();
   stopBossFightLoop();
-
-  // close any open drawer/cabinet overlay so clicks can't slip through
   closeOverlay();
-
   showPauseOverlay();
 }
 
 function resumeGame() {
   if (!isPaused) return;
   isPaused = false;
-
+  resumeSurvivalTimer();
   hidePauseOverlay();
 
   // resume boss damage only if currently in a boss room
@@ -1998,13 +1994,12 @@ function onBossDefeated(boss) {
   }
 
   if (mode === "survival") {
-    const placements = save.survival?.bossPlacements || {};
-    const defeated = save.survival?.bossesDefeated || {};
+    save.survival = save.survival || {};
+    save.survival.bossesDefeated = save.survival.bossesDefeated || {};
+    save.survival.bossesDefeated[boss.id] = true;
+    saveGame();
 
-    const assignedBossIds = Object.values(placements); 
-    const allDead = assignedBossIds.length > 0 && assignedBossIds.every(id => defeated[id]);
-
-    if (allDead) {
+    if (!save.survival.keySpawned && areAllSurvivalBossesDefeated()) {
       spawnSurvivalKeyNow();
     }
   }
@@ -2427,11 +2422,17 @@ function restoreStoryBosses() {
 
 //completed screen
 function showCompletedScreen() {
+  if (mode === "survival") {
+  stopSurvivalTimer();
+  const score = getSurvivalScoreFromTime(survivalElapsedMs);
+  console.log("SURVIVAL TIME MS:", survivalElapsedMs, "SCORE:", score);
+  }
+
   // hard lock gameplay
   dialogueLocked = true;
   stopBossFightLoop();
   stopWhispers();
-  stopSurvivalTimer();
+
 
 
   // hide interactables
@@ -2617,9 +2618,10 @@ if (mode === "story") {
   startNewStoryRun();
   bindArrowControlsOnce();
 
-
+  
   startPhase(PHASES.BEDROOM);
-
+  hideSurvivalTimerUI();
+  stopSurvivalTimer();
   playEyeOpeningAnimation(() => {
     renderRoom();
   });
@@ -2751,6 +2753,20 @@ function pickAndPlaceSurvivalBossesNewRun() {
   saveGame();
 }
 
+function areAllSurvivalBossesDefeated() {
+  const placements = save.survival?.bossPlacements || {};
+  const defeated = save.survival?.bossesDefeated || {};
+
+  const bossIds = Object.values(placements).filter(Boolean);
+
+  const EXPECTED = 3;
+
+  if (bossIds.length !== EXPECTED) return false;
+
+  return bossIds.every(id => defeated[id] === true);
+}
+
+
 //survival hotspots
 function shuffle(arr) {
   const a = arr.slice();
@@ -2799,35 +2815,18 @@ function placeSurvivalItemsNewRun() {
   clearHotspotItems(roomIDs);
 
   const all = getAllHotspots(roomIDs);
-  const drawerSpots = all.filter(x => isDrawerHotspot(x.hotspot));
 
   const roomItemCount = {};
   roomIDs.forEach(r => (roomItemCount[r] = 0));
 
-  if (drawerSpots.length > 0) {
-    const keySpot = drawerSpots[Math.floor(Math.random() * drawerSpots.length)];
-
-    keySpot.hotspot.items = [{
-      id: "key",
-      img: "Assets/keyreplacement.png",
-      ...defaultPlacement()
-    }];
-
-  } else {
-    console.warn("No drawer hotspots found: key cannot be placed.");
-  }
-
   const uniqueItems = shuffle(SURVIVAL_ITEM_POOL);
-
 
   const weaponCandidates = uniqueItems.filter(i => SURVIVAL_WEAPONS.has(i.id));
   if (weaponCandidates.length === 0) {
     console.warn("No weapons in SURVIVAL_ITEM_POOL — bosses can never unlock.");
   }
 
-
-  const maxNonKeyItemsToPlace = Math.min(6, uniqueItems.length);
-
+  const maxItemsToPlace = Math.min(6, uniqueItems.length); 
 
   const roomHotspots = {};
   roomIDs.forEach(r => (roomHotspots[r] = []));
@@ -2836,12 +2835,11 @@ function placeSurvivalItemsNewRun() {
     roomHotspots[entry.roomID].push(entry.hotspot);
   });
 
-
   Object.keys(roomHotspots).forEach(r => {
     roomHotspots[r] = shuffle(roomHotspots[r]);
   });
 
-  const placedItemIds = new Set(); 
+  const placedItemIds = new Set();
 
   function canPlaceInRoom(roomID) {
     return roomItemCount[roomID] < 2;
@@ -2852,7 +2850,6 @@ function placeSurvivalItemsNewRun() {
 
     const spots = roomHotspots[roomID];
     if (!spots || spots.length === 0) return false;
-
 
     const targetHotspot = spots.find(h => !h.items || h.items.length === 0);
     if (!targetHotspot) return false;
@@ -2868,14 +2865,11 @@ function placeSurvivalItemsNewRun() {
     return true;
   }
 
-
   if (weaponCandidates.length > 0) {
     const weapon = weaponCandidates[Math.floor(Math.random() * weaponCandidates.length)];
-
-
     const roomsShuffled = shuffle(roomIDs);
-    let weaponPlaced = false;
 
+    let weaponPlaced = false;
     for (const r of roomsShuffled) {
       if (placeIntoRoom(r, weapon)) {
         weaponPlaced = true;
@@ -2891,8 +2885,8 @@ function placeSurvivalItemsNewRun() {
   let placedCount = 0;
 
   for (const item of uniqueItems) {
-    if (placedCount >= maxNonKeyItemsToPlace) break;
-    if (placedItemIds.has(item.id)) continue; 
+    if (placedCount >= maxItemsToPlace) break;
+    if (placedItemIds.has(item.id)) continue;
 
     const roomsShuffled = shuffle(roomIDs);
     let placedThis = false;
@@ -2905,11 +2899,10 @@ function placeSurvivalItemsNewRun() {
     }
 
     if (placedThis) placedCount++;
-    else {
-      break;
-    }
+    else break; 
   }
 }
+
 
 //spawn key
 function spawnSurvivalKeyNow() {
@@ -2980,34 +2973,108 @@ function spawnSurvivalKeyNow() {
   renderRoom(); 
 }
 
+function removeKeyFromAllHotspots() {
+  const roomIDs = [
+    "startingBedroom",
+    "livingRoom",
+    "diningArea",
+    "kitchen",
+    "toilet",
+    "parentsBedroom",
+    "exitHallway"
+  ];
+
+  roomIDs.forEach(roomID => {
+    Rooms[roomID]?.hotspots?.forEach(h => {
+      if (!h.items) return;
+      h.items = h.items.filter(it => it.id !== "key");
+      if (h.items.length === 0) delete h.items;
+    });
+  });
+}
+
+
 //survival timer
+let survivalStartMs = 0;
 let survivalTimerId = null;
-let survivalStartedAt = 0;
+let survivalElapsedMs = 0;
+let survivalPaused = false;
+let survivalPauseStartMs = 0;
+let survivalPausedTotalMs = 0;
 
-const timerText = document.querySelector("#timerText");
 
-function formatTime(ms) {
-  const totalSec = Math.floor(ms / 1000);
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+const survivalTimerBox = document.querySelector("#survivalTimer");
+const survivalTimerValue = document.querySelector("#survivalTimerValue");
+
+function formatSurvivalTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const tenths = Math.floor((ms % 1000) / 100);
+  return `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}.${tenths}`;
+}
+
+function updateSurvivalTimerUI(ms) {
+  if (!survivalTimerValue) return;
+  survivalTimerValue.textContent = formatSurvivalTime(ms);
 }
 
 function startSurvivalTimer() {
+  if (mode !== "survival") return;
+
+  survivalStartMs = Date.now();
+  survivalPausedTotalMs = 0;
+  survivalPaused = false;
+  survivalPauseStartMs = 0;
+
+  survivalElapsedMs = 0;
+
+  if (survivalTimerBox) survivalTimerBox.classList.remove("hidden");
+  updateSurvivalTimerUI(0);
+
   stopSurvivalTimer();
-  survivalStartedAt = Date.now();
-  if (timerText) timerText.textContent = "00:00";
 
   survivalTimerId = setInterval(() => {
-    const elapsed = Date.now() - survivalStartedAt;
-    if (timerText) timerText.textContent = formatTime(elapsed);
-  }, 200);
+    if (survivalPaused) return;
+
+    survivalElapsedMs = (Date.now() - survivalStartMs) - survivalPausedTotalMs;
+    updateSurvivalTimerUI(survivalElapsedMs);
+  }, 100);
 }
+
+function pauseSurvivalTimer() {
+  if (mode !== "survival") return;
+  if (survivalPaused) return;
+
+  survivalPaused = true;
+  survivalPauseStartMs = Date.now();
+}
+
+function resumeSurvivalTimer() {
+  if (mode !== "survival") return;
+  if (!survivalPaused) return;
+
+  survivalPaused = false;
+  survivalPausedTotalMs += (Date.now() - survivalPauseStartMs);
+  survivalPauseStartMs = 0;
+}
+
 
 function stopSurvivalTimer() {
   if (survivalTimerId) clearInterval(survivalTimerId);
   survivalTimerId = null;
 }
+
+function hideSurvivalTimerUI() {
+  if (survivalTimerBox) survivalTimerBox.classList.add("hidden");
+}
+
+function getSurvivalScoreFromTime(ms) {
+  const base = 100000;
+  const penalty = Math.floor(ms / 10); 
+  return Math.max(0, base - penalty);
+}
+
 
 //survivl base
 function initSurvivalBase() {
@@ -3025,7 +3092,12 @@ function initSurvivalBase() {
 
   randomizeSurvivalLayoutNewRun();
   placeSurvivalItemsNewRun();
+  removeKeyFromAllHotspots();
+  save.survival.keySpawned = false;
+  save.survival.keyFound = false;
+  saveGame();
   pickAndPlaceSurvivalBossesNewRun();
+  startSurvivalTimer();
   renderRoom();
 }
 
@@ -3034,7 +3106,6 @@ if (mode === "survival") {
   clearDynamicRoomContent();
   initSurvivalBase();
   bindArrowControlsOnce();
-  startSurvivalTimer();
 }
 
 // Pause menu bindings
