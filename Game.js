@@ -1,6 +1,12 @@
 const mode = localStorage.getItem("gameMode");
 let audioUnlocked = false;
 let pendingJumpscare = null;
+if (mode === "survival") {
+  document.body.classList.add("debug-hotspots");
+} else {
+  document.body.classList.remove("debug-hotspots");
+}
+
 
 //Pause system
 let isPaused = false;
@@ -733,46 +739,47 @@ function canMove(direction) {
   if (isPaused) return false;
   if (dialogueLocked) return false;
 
+  // Survival
+  if (mode !== "story") {
+    const room = Rooms[currentRoomID];
+    if (room?.boss) return false;
+
+    return true;
+  }
+
+  // Story
   const phase = save.story.currentPhase;
 
-  // Phase 1: bedroom → only left
   if (phase === PHASES.BEDROOM) {
     return direction === "left";
   }
 
-  // Phase 2: living room → only left
   if (phase === PHASES.LIVING_ROOM) {
     return direction === "left";
   }
 
-  // Phase 3: dining → locked until needle, then only left
   if (phase === PHASES.DINING_NEEDLE) {
     if (!save.collected["needle"]) return false;
     return direction === "left";
   }
 
-  // Phase 4: AFTER boss1 (item hunt)
   if (phase === PHASES.BOSS_1) {
-    const hasItems =
-      save.collected["knife"] &&
-      save.collected["bandages"];
-
-    if (!hasItems) return false;  
-    return direction === "right";  
+    const hasItems = save.collected["knife"] && save.collected["bandages"];
+    if (!hasItems) return false;
+    return direction === "right";
   }
 
-  // Phase 5: Boss2 fight → no movement
   if (phase === PHASES.BOSS_2) {
     return false;
   }
 
-    // FREE ROAM — allow movement
-    if (phase === PHASES.FREE_ROAM) {
+  if (phase === PHASES.FREE_ROAM) {
     return true;
-    }
+  }
 
   return true;
 }
+
 
 function setupPhaseContent() {
   if (mode !== "story") return;
@@ -1212,7 +1219,7 @@ let currentBossHP = 0;
 let currentBossMaxHP = 0;
 
 
-
+//arrows
 function updateArrows() {
   const currentRoom = Rooms[currentRoomID];
 
@@ -1249,20 +1256,140 @@ function updateArrows() {
 
 
   forwardArrow.classList.add("hidden");
-    // FREE ROAM + KEY + EXIT HALLWAY
-    if (
-    phase === PHASES.FREE_ROAM &&
-    save.story.keyFound &&
-    currentRoomID === "exitHallway"
-    ) {
-    forwardArrow.classList.remove("hidden");
-    Rooms.exitHallway.exits.forward = "endingRoom";
-    }
+  // FREE ROAM + KEY + EXIT HALLWAY
+  if (
+  phase === PHASES.FREE_ROAM &&
+  save.story.keyFound &&
+  currentRoomID === "exitHallway"
+  ) {
+  forwardArrow.classList.remove("hidden");
+  Rooms.exitHallway.exits.forward = "endingRoom";
+  }
 
 
 }
 
+function bindArrowControlsOnce() {
+  const leftArrow = document.querySelector("#arrowLeft");
+  const rightArrow = document.querySelector("#arrowRight");
+  const backArrow = document.querySelector("#arrowBackward");
+  const forwardArrow = document.querySelector("#arrowForward");
 
+  // LEFT
+  if (leftArrow && !leftArrow.dataset.bound) {
+    leftArrow.dataset.bound = "1";
+    leftArrow.addEventListener("click", () => {
+      if (!canMove("left")) return;
+
+      const prevRoomID = currentRoomID;
+      const currentRoom = Rooms[currentRoomID];
+      const nextRoomID = currentRoom?.exits?.left;
+      if (!nextRoomID) return;
+
+      walkSFX.currentTime = 0;
+      walkSFX.play().catch(() => {});
+      setTimeout(() => {
+        walkSFX.pause();
+        walkSFX.currentTime = 0;
+      }, 2150);
+
+      currentRoomID = nextRoomID;
+
+      if (mode === "story") handlePhaseProgression(prevRoomID);
+
+      renderRoom();
+    });
+  }
+
+  // RIGHT
+  if (rightArrow && !rightArrow.dataset.bound) {
+    rightArrow.dataset.bound = "1";
+    rightArrow.addEventListener("click", () => {
+      if (!canMove("right")) return;
+
+      const prevRoomID = currentRoomID;
+      const currentRoom = Rooms[currentRoomID];
+      const nextRoomID = currentRoom?.exits?.right;
+      if (!nextRoomID) return;
+
+      walkSFX.currentTime = 0;
+      walkSFX.play().catch(() => {});
+      setTimeout(() => {
+        walkSFX.pause();
+        walkSFX.currentTime = 0;
+      }, 2150);
+
+      currentRoomID = nextRoomID;
+
+      if (mode === "story") handlePhaseProgression(prevRoomID);
+
+      renderRoom();
+    });
+  }
+
+  // BACK
+  if (backArrow && !backArrow.dataset.bound) {
+    backArrow.dataset.bound = "1";
+    backArrow.addEventListener("click", () => {
+      if (!canMove("back")) return;
+
+      const prevRoomID = currentRoomID;
+      const currentRoom = Rooms[currentRoomID];
+      const nextRoomID = currentRoom?.exits?.back;
+      if (!nextRoomID) return;
+
+      walkSFX.currentTime = 0;
+      walkSFX.play().catch(() => {});
+      setTimeout(() => {
+        walkSFX.pause();
+        walkSFX.currentTime = 0;
+      }, 2150);
+
+      currentRoomID = nextRoomID;
+
+      if (mode === "story") handlePhaseProgression(prevRoomID);
+
+      renderRoom();
+    });
+  }
+
+  // FORWARD
+  if (forwardArrow && !forwardArrow.dataset.bound) {
+    forwardArrow.dataset.bound = "1";
+    forwardArrow.addEventListener("click", () => {
+      if (!canMove("forward")) return;
+
+      const prevRoomID = currentRoomID;
+      const currentRoom = Rooms[currentRoomID];
+      const nextRoomID = currentRoom?.exits?.forward;
+      if (!nextRoomID) return;
+
+      walkSFX.currentTime = 0;
+      walkSFX.play().catch(() => {});
+      setTimeout(() => {
+        walkSFX.pause();
+        walkSFX.currentTime = 0;
+      }, 2150);
+
+      currentRoomID = nextRoomID;
+
+      // story ending logic stays story-only
+      if (
+        mode === "story" &&
+        prevRoomID === "exitHallway" &&
+        currentRoomID === "endingRoom"
+      ) {
+        stopBossFightLoop();
+        stopWhispers();
+        startPhase(PHASES.ENDING);
+      } else if (mode === "story") {
+        handlePhaseProgression(prevRoomID);
+      }
+
+      renderRoom();
+    });
+  }
+}
 
 //inventory
 
@@ -1841,7 +1968,7 @@ save.jumpscaresPlayed = save.jumpscaresPlayed || {};
 //bosses
 const BOSS_STYLE = {
   boss1: { left: "50%", top: "60%", width: "20vw" },
-  boss2: { left: "50%", top: "70%", width: "35vw"},
+  boss2: { left: "50%", top: "60%", width: "35vw"},
   boss3: { left: "50%", top: "60%", width: "20vw"}
 };
 
@@ -2033,148 +2160,91 @@ function renderRoom() {
 
 
 if (mode === "story") {
-    // STARTING BEDROOM
-    Rooms.startingBedroom.exits.left = "livingRoom";
+  // STARTING BEDROOM
+  Rooms.startingBedroom.exits.left = "livingRoom";
 
-    // LIVING ROOM
-    Rooms.livingRoom.exits.back = "startingBedroom";
-    Rooms.livingRoom.exits.left = "diningArea";
-    Rooms.livingRoom.exits.right = "exitHallway";
+  // LIVING ROOM
+  Rooms.livingRoom.exits.back = "startingBedroom";
+  Rooms.livingRoom.exits.left = "diningArea";
+  Rooms.livingRoom.exits.right = "exitHallway";
 
-    // DINING AREA
-    Rooms.diningArea.exits.left = "kitchen";
-    Rooms.diningArea.exits.right = "livingRoom";
+  // DINING AREA
+  Rooms.diningArea.exits.left = "kitchen";
+  Rooms.diningArea.exits.right = "livingRoom";
 
-    // KITCHEN
-    Rooms.kitchen.exits.back = "diningArea";
-    Rooms.kitchen.exits.right = "toilet";
+  // KITCHEN
+  Rooms.kitchen.exits.back = "diningArea";
+  Rooms.kitchen.exits.right = "toilet";
 
-    // TOILET
-    Rooms.toilet.exits.left = "kitchen";
+  // TOILET
+  Rooms.toilet.exits.left = "kitchen";
 
-    // EXIT HALLWAY
-    Rooms.exitHallway.exits.left = "livingRoom";
-    Rooms.exitHallway.exits.right = "parentsBedroom";
+  // EXIT HALLWAY
+  Rooms.exitHallway.exits.left = "livingRoom";
+  Rooms.exitHallway.exits.right = "parentsBedroom";
 
-    // PARENTS BEDROOM
-    Rooms.parentsBedroom.exits.back = "exitHallway";
+  // PARENTS BEDROOM
+  Rooms.parentsBedroom.exits.back = "exitHallway";
 
-    clearDynamicRoomContent();
-    applyStoryContent();
-    startNewStoryRun();
-
-    startPhase(PHASES.BEDROOM);
-
-    playEyeOpeningAnimation(() => {
-      renderRoom();
-    });
-
-    const leftArrow = document.querySelector("#arrowLeft");
-    leftArrow.addEventListener("click", () => {
-      if (!canMove("left")) return;
-
-      const prevRoomID = currentRoomID;
-      const currentRoom = Rooms[currentRoomID];
-      const nextRoomID = currentRoom.exits.left;
-
-      if (!nextRoomID) return;
-
-      walkSFX.currentTime = 0;
-      walkSFX.play();
-
-        setTimeout(() => {
-          walkSFX.pause();
-          walkSFX.currentTime = 0;
-        },  2150);
-
-      currentRoomID = nextRoomID;
-      handlePhaseProgression(prevRoomID);
-      renderRoom();
-    });
-
-    const rightArrow = document.querySelector("#arrowRight")
-    rightArrow.addEventListener("click", () => {
-        if (!canMove("right")) return;
-
-        const prevRoomID = currentRoomID;
-        const currentRoom = Rooms[currentRoomID];
-        const nextRoomID = currentRoom.exits.right;
-
-        if (!nextRoomID) return;
-
-        walkSFX.currentTime = 0;
-        walkSFX.play();
-
-        setTimeout(() => {
-          walkSFX.pause();
-          walkSFX.currentTime = 0;
-        }, 2150);
-
-        currentRoomID = nextRoomID
-        handlePhaseProgression(prevRoomID);
-        renderRoom();
-    });
-
-    const backArrow = document.querySelector("#arrowBackward")
-    backArrow.addEventListener("click", () => {
-        if (!canMove("back")) return;
-
-        const prevRoomID = currentRoomID;
-        const currentRoom = Rooms[currentRoomID];
-        const nextRoomID = currentRoom.exits.back;
-
-        if (!nextRoomID) return;
-
-        walkSFX.currentTime = 0;
-        walkSFX.play();
-
-        setTimeout(() => {
-          walkSFX.pause();
-          walkSFX.currentTime = 0;
-        }, 2150);
-
-        currentRoomID = nextRoomID
-        handlePhaseProgression(prevRoomID);
-        renderRoom();
-    });
+  clearDynamicRoomContent();
+  applyStoryContent();
+  startNewStoryRun();
+  bindArrowControlsOnce();
 
 
-    const forwardArrow = document.querySelector("#arrowForward");
+  startPhase(PHASES.BEDROOM);
 
-    if (forwardArrow && !forwardArrow.dataset.bound) {
-    forwardArrow.dataset.bound = "1";
-
-    forwardArrow.addEventListener("click", () => {
-        if (!canMove("forward")) return;
-
-        const currentRoom = Rooms[currentRoomID];
-        const nextRoomID = currentRoom?.exits?.forward;
-        if (!nextRoomID) return;
-
-        const prevRoomID = currentRoomID;
-        currentRoomID = nextRoomID;
-
-        // ENDING TRANSITION
-        if (
-        mode === "story" &&
-        prevRoomID === "exitHallway" &&
-        currentRoomID === "endingRoom"
-        ) {
-        stopBossFightLoop();       // safety
-        stopWhispers();
-        startPhase(PHASES.ENDING);
-        } else {
-        handlePhaseProgression(prevRoomID);
-        }
-
-        renderRoom();
-    });
-    }
+  playEyeOpeningAnimation(() => {
+    renderRoom();
+  });
 
 }
 
+function initSurvivalBase() {
+  dialogueLocked = false;
+  isPaused = false;
+  hidePauseOverlay();
+  closeOverlay();
+
+
+  const eye = document.getElementById("eyeOverlay");
+  if (eye) eye.style.display = "none";
+
+
+  currentRoomID = "startingBedroom";
+
+
+
+  Rooms.startingBedroom.exits.left = "livingRoom";
+
+  Rooms.livingRoom.exits.back = "startingBedroom";
+  Rooms.livingRoom.exits.left = "diningArea";
+  Rooms.livingRoom.exits.right = "exitHallway";
+
+  Rooms.diningArea.exits.left = "kitchen";
+  Rooms.diningArea.exits.right = "livingRoom";
+
+  Rooms.kitchen.exits.back = "diningArea";
+  Rooms.kitchen.exits.right = "toilet";
+
+  Rooms.toilet.exits.left = "kitchen";
+
+  Rooms.exitHallway.exits.left = "livingRoom";
+  Rooms.exitHallway.exits.right = "parentsBedroom";
+  // forward locked until key in survival, so don't set it yet:
+  delete Rooms.exitHallway.exits.forward;
+
+  Rooms.parentsBedroom.exits.back = "exitHallway";
+
+  renderRoom();
+}
+
+
 if (mode === "survival") {
   clearDynamicRoomContent();
+  initSurvivalBase();
+  bindArrowControlsOnce();
+  
 }
 
 // Pause menu bindings
