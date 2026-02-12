@@ -2,6 +2,122 @@ const mode = localStorage.getItem("gameMode");
 let audioUnlocked = false;
 let pendingJumpscare = null;
 
+//Pause system
+let isPaused = false;
+
+function showPauseOverlay() {
+  const p = document.querySelector("#pauseOverlay");
+  if (p) p.classList.remove("hidden");
+}
+
+function hidePauseOverlay() {
+  const p = document.querySelector("#pauseOverlay");
+  if (p) p.classList.add("hidden");
+}
+
+function pauseGame() {
+  if (isPaused) return;
+  isPaused = true;
+
+  // stop damage loop immediately so player doesn't die while paused
+  stopBossFightLoop();
+
+  // close any open drawer/cabinet overlay so clicks can't slip through
+  closeOverlay();
+
+  showPauseOverlay();
+}
+
+function resumeGame() {
+  if (!isPaused) return;
+  isPaused = false;
+
+  hidePauseOverlay();
+
+  // resume boss damage only if currently in a boss room
+  const room = Rooms[currentRoomID];
+  if (room?.boss) startBossFightLoop();
+}
+
+function togglePause() {
+  if (isPaused) resumeGame();
+  else pauseGame();
+}
+
+function resetStoryRun() {
+  // hard stop gameplay
+  dialogueLocked = false;
+  stopBossFightLoop();
+  stopWhispers();
+  closeOverlay();
+
+  // reset player
+  playerHP = playerMaxHP;
+  updatePlayerHPUI();
+
+  // reset save content
+  save.inventory = [];
+  save.collected = {};
+  save.equippedSlot = null;
+
+  save.bosses = {};
+  save.jumpscaresPlayed = {};
+
+  save.story = {
+    currentPhase: PHASES.BEDROOM,
+    completedPhases: {},
+    dialoguesPlayed: {},
+    lastRoomID: null,
+    keyFound: false
+  };
+
+  clearAllBosses();
+
+  
+  currentRoomID = "startingBedroom";
+
+  saveGame();
+  renderInventory();
+
+  playEyeOpeningAnimation(() => {
+    renderRoom();
+  });
+}
+
+function startNewStoryRun() {
+  isPaused = false;
+  hidePauseOverlay?.();
+  closeOverlay();
+
+  playerHP = playerMaxHP;
+  updatePlayerHPUI();
+
+  save.inventory = [];
+  save.collected = {};
+  save.equippedSlot = null;
+
+  save.bosses = {};
+  save.jumpscaresPlayed = {};
+
+  save.story = {
+    currentPhase: PHASES.BEDROOM,
+    completedPhases: {},
+    dialoguesPlayed: {},
+    lastRoomID: null,
+    keyFound: false
+  };
+
+  restoreStoryBosses?.();
+
+  currentRoomID = "startingBedroom";
+
+  saveGame();
+  renderInventory();
+}
+
+
+
+
 
 const Rooms = {
 
@@ -463,11 +579,20 @@ const PHASE_START_ROOMS = {
 
 
 //save
-let save = JSON.parse(localStorage.getItem("save_story")) || {
+let save = (() => {
+  try {
+    const raw = localStorage.getItem("save_story");
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+})() || {
   inventory: [],
   collected: {},
   equippedSlot: null
 };
+
 
 function saveGame() {
   localStorage.setItem("save_story", JSON.stringify(save));
@@ -564,6 +689,7 @@ function handlePhaseProgression(prevRoomID) {
 }
 
 function canMove(direction) {
+  if (isPaused) return false;
   if (dialogueLocked) return false;
 
   const phase = save.story.currentPhase;
@@ -611,38 +737,6 @@ function setupPhaseContent() {
   if (mode !== "story") return;
 
   const phase = save.story.currentPhase;
-
-
-  if (phase === PHASES.BOSS_1) {
-    const kitchen = Rooms.kitchen;
-
-    if (!kitchen.boss && !save.bosses?.boss1) {
-      kitchen.boss = {
-        id: "boss1",
-        name: "???",
-        maxHP: 40,
-        attackDamage: 8,
-        img: "Assets/Boss1.png",
-        jumpscareImg: "Assets/Boss1Jumpscare.png"
-      };
-    }
-  }
-
-
-  if (phase === PHASES.FREE_ROAM) {
-    const exitHallway = Rooms.exitHallway;
-
-    if (!exitHallway.boss && !save.bosses?.boss3) {
-      exitHallway.boss = {
-        id: "boss3",
-        name: "???",
-        maxHP: 100,
-        attackDamage: 12,
-        img: "Assets/Boss3.png",
-        jumpscareImg: "Assets/Boss3Jumpscare.png"
-      };
-    }
-  }
 }
 
 
@@ -904,8 +998,127 @@ function handleRoomEnterDialogue() {
 
 }
 
+//fight bgm
 
+const whisperSFX = new Audio("Audios/fightwhisperBGM.mp3");
+whisperSFX.loop = true;
+whisperSFX.volume = 0;   
+whisperSFX.preload = "auto";
 
+let whisperFadeTimer = null;
+
+function fadeTo(audio, targetVolume, step = 0.02, intervalMs = 30) {
+  clearInterval(whisperFadeTimer);
+
+  whisperFadeTimer = setInterval(() => {
+    const v = audio.volume;
+
+    if (Math.abs(v - targetVolume) <= step) {
+      audio.volume = targetVolume;
+      clearInterval(whisperFadeTimer);
+
+      if (targetVolume === 0) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      return;
+    }
+
+    audio.volume = v + (v < targetVolume ? step : -step);
+  }, intervalMs);
+}
+
+function startWhispers() {
+  if (!audioUnlocked) return;
+
+  if (whisperSFX.paused) {
+    whisperSFX.currentTime = 0;
+    whisperSFX.play().catch(() => {});
+  }
+
+  fadeTo(whisperSFX, 1);
+}
+
+function stopWhispers() {
+  fadeTo(whisperSFX, 0);
+}
+
+//BGM
+
+var bgm = new Audio("Audios/AreYouAloneBGM.mp3");
+bgm.loop = true;
+bgm.volume = 0.3;
+
+var endingBGM = new Audio("Audios/HospitalBGM.mp3");
+endingBGM.loop = true;
+endingBGM.volume = 0.6;
+
+function stopMainBGM() {
+  if (!bgm) return;
+  bgm.pause();
+  bgm.currentTime = 0;
+}
+
+function stopEndingBGM() {
+  if (!endingBGM) return;
+  endingBGM.pause();
+  endingBGM.currentTime = 0;
+}
+
+const gate = document.getElementById("audioGate");
+
+function unlockAudio() {
+  audioUnlocked = true;
+
+  Object.values(sfx).forEach(a => {
+    try {
+      a.play().then(() => {
+        a.pause();
+        a.currentTime = 0;
+      }).catch(() => {});
+    } catch (err) {}
+  });
+
+  bgm.play().catch(() => {});
+
+    if (pendingJumpscare) {
+      pendingJumpscare();
+      save.jumpscaresPlayed["boss1"] = true; // safe because it's first-time only
+      saveGame();
+      pendingJumpscare = null;
+    }
+
+  sessionStorage.setItem("audioUnlocked", "true");
+
+  if (gate) gate.style.display = "none";
+
+  document.removeEventListener("click", unlockAudio);
+  document.removeEventListener("keydown", unlockAudio);
+  document.removeEventListener("touchstart", unlockAudio);
+
+  [bgm, whisperSFX, ...Object.values(sfx)].forEach(a => {
+  try {
+        a.play().then(() => {
+         a.pause();
+         a.currentTime = 0;
+        }).catch(() => {});
+    } catch {}
+  });
+
+}
+
+// If already unlocked this session, try to play + hide gate
+if (sessionStorage.getItem("audioUnlocked") === "true") {
+  audioUnlocked = true; 
+  bgm.play().catch(() => {});
+  whisperSFX.load();
+  if (gate) gate.style.display = "none";
+} else {
+  // Need user gesture first
+  document.addEventListener("click", unlockAudio);
+  document.addEventListener("keydown", unlockAudio);
+  document.addEventListener("touchstart", unlockAudio, { passive: true });
+}
 
 //SFX
 
@@ -1017,6 +1230,7 @@ if (save.equippedSlot === undefined) save.equippedSlot = null;
 save.collected = save.collected || {};
 
 function collectItem(item) {
+if (isPaused) return;
 if (dialogueLocked) return;
   if (save.collected[item.id]) return;
 
@@ -1199,6 +1413,7 @@ renderInventory();
 
 
 document.addEventListener("keydown", (e) => {
+  if (isPaused) return;
   if (e.key.toLowerCase() === "e") {
     useEquippedItem();
   }
@@ -1206,6 +1421,7 @@ document.addEventListener("keydown", (e) => {
 
 //fights (boss)
 function attackBoss() {
+  if (isPaused) return;
   const currentRoom = Rooms[currentRoomID];
   if (!currentRoom.boss) return;
 
@@ -1283,6 +1499,7 @@ function onBossDefeated(boss) {
 
 
 document.addEventListener("click", (e) => {
+  if (isPaused) return;
   const currentRoom = Rooms[currentRoomID];
   if (!currentRoom.boss) return;
 
@@ -1442,6 +1659,7 @@ function renderOverlayItems(hotspot) {
 
     img.addEventListener("click", (e) => {
     e.stopPropagation();
+    if (isPaused) return;
 
     const before = !!save.collected[item.id];
     collectItem(item);
@@ -1459,6 +1677,7 @@ function renderOverlayItems(hotspot) {
 
 
 function openOverlay(imageSrc, hotspot) {
+  if (isPaused) return;
   overlayImage.src = imageSrc;
   overlay.classList.remove("hidden");
   renderOverlayItems(hotspot);
@@ -1506,6 +1725,7 @@ function renderHotspots() {
     }
 
     hotspotDiv.addEventListener("click", () => {
+    if (isPaused) return;
     if (dialogueLocked) return;
     const imageSrc = overlayImages[hotspot.overlay];
     if (!imageSrc) return;
@@ -1589,6 +1809,7 @@ const bossImage = document.querySelector("#bossImage");
 
 //clear bosses
 function clearAllBosses() {
+  restoreStoryBosses();
   for (const room of Object.values(Rooms)) {
     if (room.boss) {
       delete room.boss;
@@ -1599,6 +1820,37 @@ function clearAllBosses() {
   save.jumpscaresPlayed = {};
   saveGame();
 }
+
+//restore bosses
+function restoreStoryBosses() {
+  Rooms.kitchen.boss = {
+    id: "boss1",
+    name: "FEMALE BOSS",
+    maxHP: 500,
+    img: "Assets/Boss1.png",
+    jumpscareImg: "Assets/Boss1jumpscare.png",
+    attackDamage: 3
+  };
+
+  Rooms.toilet.boss = {
+    id: "boss2",
+    name: "MALE BOSS",
+    maxHP: 500,
+    img: "Assets/Boss2.png",
+    jumpscareImg: "Assets/Boss2jumpscare.png",
+    attackDamage: 5
+  };
+
+  Rooms.exitHallway.boss = {
+    id: "boss3",
+    name: "FINAL BOSS",
+    maxHP: 1000,
+    img: "Assets/Boss3.png",
+    jumpscareImg: "Assets/Boss3jumpscare.png",
+    attackDamage: 6
+  };
+}
+
 
 //completed screen
 function showCompletedScreen() {
@@ -1630,7 +1882,8 @@ function showCompletedScreen() {
 function playEyeOpeningAnimation(onComplete = null) {
   const overlay = document.getElementById("eyeOverlay");
   if (!overlay) return;
-
+  
+  overlay.style.display = ""; 
   dialogueLocked = true; // lock player during animation
 
 
@@ -1739,7 +1992,6 @@ function renderRoom() {
 
 
 if (mode === "story") {
-
     // STARTING BEDROOM
     Rooms.startingBedroom.exits.left = "livingRoom";
 
@@ -1766,21 +2018,14 @@ if (mode === "story") {
     // PARENTS BEDROOM
     Rooms.parentsBedroom.exits.back = "exitHallway";
 
-    save.story.lastRoomID = null;
-    saveGame();
 
-    startPhase(save.story.currentPhase || PHASES.BEDROOM);
-    if (save.story.currentPhase === PHASES.BEDROOM && currentRoomID === "startingBedroom") {
-      playEyeOpeningAnimation(() => {
-        renderRoom(); // dialogue triggers after animation
-      });
-    } else {
+    startNewStoryRun();
+
+    startPhase(PHASES.BEDROOM);
+
+    playEyeOpeningAnimation(() => {
       renderRoom();
-    }
-
-
-    handlePhaseProgression();
-
+    });
 
     const leftArrow = document.querySelector("#arrowLeft");
     leftArrow.addEventListener("click", () => {
@@ -1891,123 +2136,66 @@ if (mode === "survival") {
   clearAllBosses();
 }
 
+// Pause menu bindings
+const pauseButton = document.querySelector("#pauseButton");
+const pauseOverlay = document.querySelector("#pauseOverlay");
+const resumeBtn = document.querySelector("#resume");
+const restartBtn = document.querySelector("#restart");
+const quitBtn = document.querySelector("#quit");
 
-//fight bgm
-
-const whisperSFX = new Audio("Audios/fightwhisperBGM.mp3");
-whisperSFX.loop = true;
-whisperSFX.volume = 0;   
-whisperSFX.preload = "auto";
-
-let whisperFadeTimer = null;
-
-function fadeTo(audio, targetVolume, step = 0.02, intervalMs = 30) {
-  clearInterval(whisperFadeTimer);
-
-  whisperFadeTimer = setInterval(() => {
-    const v = audio.volume;
-
-    if (Math.abs(v - targetVolume) <= step) {
-      audio.volume = targetVolume;
-      clearInterval(whisperFadeTimer);
-
-      if (targetVolume === 0) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-      return;
-    }
-
-    audio.volume = v + (v < targetVolume ? step : -step);
-  }, intervalMs);
+if (pauseButton && !pauseButton.dataset.bound) {
+  pauseButton.dataset.bound = "1";
+  pauseButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    togglePause();
+  });
 }
 
-function startWhispers() {
-  if (!audioUnlocked) return;
+if (pauseOverlay && !pauseOverlay.dataset.bound) {
+  pauseOverlay.dataset.bound = "1";
+  pauseOverlay.addEventListener("click", (e) => {
+    e.stopPropagation();
+    resumeGame();
+  });
 
-  if (whisperSFX.paused) {
-    whisperSFX.currentTime = 0;
-    whisperSFX.play().catch(() => {});
+  const pauseMenu = document.querySelector("#pauseMenu");
+  if (pauseMenu) {
+    pauseMenu.addEventListener("click", (e) => e.stopPropagation());
   }
-
-  fadeTo(whisperSFX, 1);
 }
 
-function stopWhispers() {
-  fadeTo(whisperSFX, 0);
-}
-
-//BGM
-
-const bgm = new Audio("Audios/AreYouAloneBGM.mp3");
-bgm.loop = true;
-bgm.volume = 0.3;
-
-const endingBGM = new Audio("Audios/HospitalBGM.mp3");
-endingBGM.loop = true;
-endingBGM.volume = 0.6;
-
-function stopMainBGM() {
-  bgm.pause();
-  bgm.currentTime = 0;
-}
-
-function stopEndingBGM() {
-  endingBGM.pause();
-  endingBGM.currentTime = 0;
-}
-
-const gate = document.getElementById("audioGate");
-
-function unlockAudio() {
-  audioUnlocked = true;
-
-  Object.values(sfx).forEach(a => {
-    try {
-      a.play().then(() => {
-        a.pause();
-        a.currentTime = 0;
-      }).catch(() => {});
-    } catch (err) {}
+if (resumeBtn && !resumeBtn.dataset.bound) {
+  resumeBtn.dataset.bound = "1";
+  resumeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    resumeGame();
   });
+}
 
-  bgm.play().catch(() => {});
+if (restartBtn && !restartBtn.dataset.bound) {
+  restartBtn.dataset.bound = "1";
+  restartBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    resumeGame();
 
-    if (pendingJumpscare) {
-      pendingJumpscare();
-      save.jumpscaresPlayed["boss1"] = true; // safe because it's first-time only
-      saveGame();
-      pendingJumpscare = null;
+    if (mode === "story") {
+      resetStoryRun();
+    } else {
+      window.location.reload();
     }
 
-  sessionStorage.setItem("audioUnlocked", "true");
-
-  if (gate) gate.style.display = "none";
-
-  document.removeEventListener("click", unlockAudio);
-  document.removeEventListener("keydown", unlockAudio);
-  document.removeEventListener("touchstart", unlockAudio);
-
-  [bgm, whisperSFX, ...Object.values(sfx)].forEach(a => {
-  try {
-        a.play().then(() => {
-         a.pause();
-         a.currentTime = 0;
-        }).catch(() => {});
-    } catch {}
   });
-
 }
 
-// If already unlocked this session, try to play + hide gate
-if (sessionStorage.getItem("audioUnlocked") === "true") {
-  audioUnlocked = true; 
-  bgm.play().catch(() => {});
-  whisperSFX.load();
-  if (gate) gate.style.display = "none";
-} else {
-  // Need user gesture first
-  document.addEventListener("click", unlockAudio);
-  document.addEventListener("keydown", unlockAudio);
-  document.addEventListener("touchstart", unlockAudio, { passive: true });
+if (quitBtn && !quitBtn.dataset.bound) {
+  quitBtn.dataset.bound = "1";
+  quitBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    window.location.href = "MainMenu.html";
+  });
 }
+
+// toggles pause
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") togglePause();
+});

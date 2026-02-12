@@ -816,7 +816,7 @@ body {
     0 0 12px rgba(255, 0, 0, 0.5),
     0 0 20px rgba(255, 0, 0, 0.3);
   -webkit-tap-highlight-color: transparent;
-  z-index: 50;
+  z-index: 999999;
 }
 
 #pauseButton:hover {
@@ -834,7 +834,7 @@ body {
 #pauseOverlay {
   position: absolute;
   inset: 0;
-  z-index: 100;
+  z-index: 9999999;
   background: rgba(0,0,0,0.7);
   display: flex;
   justify-content: center;
