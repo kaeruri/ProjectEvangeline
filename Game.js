@@ -984,6 +984,13 @@ save.story = save.story || {
   lastRoomID: null
 };
 
+save.survival = save.survival || {
+  keyFound: false,
+  weaponUnlocked: false,
+  bossPlacements: {},
+  bossesDefeated: {}   
+};
+
 save.story.keyFound = save.story.keyFound || false;
 
 //story phases
@@ -1775,6 +1782,18 @@ if (dialogueLocked) return;
 
   saveGame();
   renderInventory();
+
+  //survival
+  if (mode === "survival") {
+    const def = ITEM_EFFECTS[item.id];
+    if (def?.type === "weapon" && !save.survival.weaponUnlocked) {
+      save.survival.weaponUnlocked = true;
+      saveGame();
+      showToast("Something has awakened...");
+      renderRoom(); 
+    }
+  }
+
   showToast("Item picked up");
 
     // Phase 3 — needle pickup dialogue
@@ -1968,6 +1987,13 @@ function attackBoss() {
 
 function onBossDefeated(boss) {
   showToast(`${boss.name} defeated`);
+
+  if (mode === "survival") {
+    save.survival = save.survival || {};
+    save.survival.bossesDefeated = save.survival.bossesDefeated || {};
+    save.survival.bossesDefeated[boss.id] = true;
+    saveGame();
+  }
 
   bossHP.classList.add("hidden");
   bossImage.classList.add("hidden");
@@ -2324,7 +2350,17 @@ save.jumpscaresPlayed = save.jumpscaresPlayed || {};
 const BOSS_STYLE = {
   boss1: { left: "50%", top: "60%", width: "20vw" },
   boss2: { left: "50%", top: "60%", width: "35vw"},
-  boss3: { left: "50%", top: "60%", width: "20vw"}
+  boss3: { left: "50%", top: "60%", width: "20vw"},
+
+  // survival bosses
+  sb1: { left: "50%", top: "60%", width: "20vw" },
+  sb2: { left: "50%", top: "60%", width: "35vw" },
+  sb3: { left: "50%", top: "60%", width: "20vw" },
+  sb4: { left: "50%", top: "60%", width: "28vw", scale: 0.9 },
+  sb5: { left: "50%", top: "60%", width: "21vw", scale: 1 },
+  sb6: { left: "50%", top: "60%", width: "28vw", scale: 0.8 },
+  sb7: { left: "50%", top: "60%", width: "23vw", scale: 0.95 },
+  sb8: { left: "50%", top: "60%", width: "30vw", scale: 0.75 }
 };
 
 const bossImage = document.querySelector("#bossImage");
@@ -2433,6 +2469,24 @@ function renderRoom() {
   if (mode === "story") setupPhaseContent();
 
   const currentRoom = Rooms[currentRoomID];
+
+  if (mode === "survival") {
+    if (Rooms[currentRoomID].boss) delete Rooms[currentRoomID].boss;
+
+    const placements = save.survival?.bossPlacements || {};
+    const bossesDefeated = save.survival?.bossesDefeated || {};
+
+    if (save.survival?.weaponUnlocked) {
+      const bossId = placements[currentRoomID];
+      if (bossId && !bossesDefeated[bossId]) {
+        const bossDef = getSurvivalBossById(bossId);
+        if (bossDef) {
+          
+          Rooms[currentRoomID].boss = { ...bossDef };
+        }
+      }
+    }
+  }
 
   currentBGimg.src = currentRoom.bg;
   renderRoomBunnyIfNeeded();
@@ -2564,12 +2618,46 @@ const SURVIVAL_ITEM_POOL = [
   { id: "knife", img: "Assets/ProjectEvangelineKnife.png" },
   { id: "bandages", img: "Assets/ProjectEvangelineBandages.png" },
   { id: "medkit", img: "Assets/ProjectEvangelineMedkit.png" },
-  // { id: "gun", img: "Assets/ProjectEvangelineGun.png" },
-  // { id: "scissors", img: "Assets/ProjectEvangelineScissors.png" },
-  // { id: "injection", img: "Assets/ProjectEvangelineInjection.png" },
+  { id: "gun", img: "Assets/ProjectEvangelineGun.png" },
+  { id: "scissors", img: "Assets/ProjectEvangelineScissors.png" },
+  { id: "injection", img: "Assets/ProjectEvangelineInjectionShot.png" }
 ];
 
 const SURVIVAL_WEAPONS = new Set(["needle", "knife", "gun", "scissors"]);
+
+//Survival Bosses
+const SURVIVAL_BOSS_POOL = [
+  { id: "sb1", name: "MOM", maxHP: 620, img: "Assets/Boss1.png", jumpscareImg: "Assets/Boss1jumpscare.png", attackDamage: 4 },
+  { id: "sb2", name: "DAD", maxHP: 520, img: "Assets/Boss2.png", jumpscareImg: "Assets/Boss2jumpscare.png", attackDamage: 5 },
+  { id: "sb3", name: "SISTER", maxHP: 580, img: "Assets/Boss3.png", jumpscareImg: "Assets/Boss3jumpscare.png", attackDamage: 4 },
+  { id: "sb4", name: "ENTITY ?", maxHP: 600, img: "Assets/Boss4.png", jumpscareImg: "Assets/Boss4jumpscare.png", attackDamage: 6 },
+  { id: "sb5", name: "ENTITY ??", maxHP: 950, img: "Assets/Boss5.png", jumpscareImg: "Assets/Boss5jumpscare.png", attackDamage: 4 },
+  { id: "sb6", name: "ENTITY ???", maxHP: 700, img: "Assets/Boss6.png", jumpscareImg: "Assets/Boss6jumpscare.png", attackDamage: 6 },
+  { id: "sb7", name: "ENTITY ????", maxHP: 560, img: "Assets/Boss7.png", jumpscareImg: "Assets/Boss7jumpscare.png", attackDamage: 5 },
+];
+
+function getSurvivalBossById(id) {
+  return SURVIVAL_BOSS_POOL.find(b => b.id === id) || null;
+}
+
+function pickAndPlaceSurvivalBossesNewRun() {
+  save.survival = save.survival || {};
+  save.survival.weaponUnlocked = false;
+  save.survival.bossPlacements = {};
+  save.survival.bossesDefeated = {};
+
+  const picked = shuffle(SURVIVAL_BOSS_POOL).slice(0, 3).map(b => b.id);
+
+  const candidateRooms = ["livingRoom", "diningArea", "kitchen", "toilet", "parentsBedroom", "exitHallway"];
+  const chosenRooms = shuffle(candidateRooms).slice(0, 3);
+
+  for (let i = 0; i < 3; i++) {
+    save.survival.bossPlacements[chosenRooms[i]] = picked[i];
+  }
+
+  saveGame();
+}
+
 
 
 //survival hotspots
@@ -2769,8 +2857,6 @@ function initSurvivalBase() {
   bunnyShownThisRun = false;
   dialogueLocked = false;
   isPaused = false;
-  save.survival = save.survival || {};
-  save.survival.keyFound = false;
   saveGame();
   hidePauseOverlay();
   closeOverlay();
@@ -2806,6 +2892,7 @@ function initSurvivalBase() {
   Rooms.parentsBedroom.exits.back = "exitHallway";
 
   placeSurvivalItemsNewRun();
+  pickAndPlaceSurvivalBossesNewRun();
   renderRoom();
 }
 
