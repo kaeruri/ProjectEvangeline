@@ -6,7 +6,292 @@ if (mode === "survival") {
 } else {
   document.body.classList.remove("debug-hotspots");
 }
+const BUNNY_FBX_SRC = "Assets/bunny.fbx";
+const KEY_FBX_SRC = "Assets/key.fbx";
 
+let bunnyShownThisRun = false;
+// -------------------- 3D (Three.js FBX) --------------------
+
+// 3D overlay bindings (separate from hotspot overlay)
+const overlay3DPanel = document.querySelector("#overlay3DPanel");
+const overlay3DItems = document.querySelector("#overlay3DItems");
+
+// 3D overlay bindings (separate from hotspot overlay)
+let room3d = {
+  renderer: null,
+  scene: null,
+  camera: null,
+  loader: null,
+  modelCache: new Map(),
+  activeRoomModel: null,
+  animId: null
+};
+
+let overlay3d = {
+  renderer: null,
+  scene: null,
+  camera: null,
+  loader: null,
+  model: null,
+  animId: null,
+  active: false
+};
+const THREE = window.THREE;
+const FBXLoader = window.FBXLoader;
+
+if (!THREE || !FBXLoader) {
+  console.error("THREE/FBXLoader not ready. Check HTML script loading order.");
+}
+
+
+function initRoom3DOnce() {
+  const canvas = document.querySelector("#room3d");
+  if (!canvas || room3d.renderer) return;
+
+  room3d.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  room3d.renderer.setPixelRatio(window.devicePixelRatio || 1);
+
+  room3d.scene = new THREE.Scene();
+  room3d.camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+  room3d.camera.position.set(0, 0, 10);
+
+  room3d.loader = new window.FBXLoader();
+
+  // lighting
+  const amb = new THREE.AmbientLight(0xffffff, 0.9);
+  room3d.scene.add(amb);
+
+  const dir = new THREE.DirectionalLight(0xffffff, 0.7);
+  dir.position.set(2, 4, 6);
+  room3d.scene.add(dir);
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    room3d.camera.aspect = rect.width / rect.height;
+    room3d.camera.updateProjectionMatrix();
+    room3d.renderer.setSize(rect.width, rect.height, false);
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+}
+
+function loadFBXCached(src, cb) {
+  if (!room3d.loader) return;
+  if (room3d.modelCache.has(src)) {
+    cb(room3d.modelCache.get(src).clone(true));
+    return;
+  }
+  room3d.loader.load(
+    src,
+    (obj) => {
+      room3d.modelCache.set(src, obj);
+      cb(obj.clone(true));
+    },
+    undefined,
+    (err) => console.error("FBX load failed:", src, err)
+  );
+}
+
+function clearRoom3DModel() {
+  if (room3d.activeRoomModel) {
+    room3d.scene.remove(room3d.activeRoomModel);
+    room3d.activeRoomModel = null;
+  }
+}
+
+function renderRoomBunnyIfNeeded() {
+  initRoom3DOnce();
+  clearRoom3DModel();
+
+  // Only show bunny in startingBedroom, only the first visit per run
+  if (currentRoomID !== "startingBedroom") return;
+  if (bunnyShownThisRun) return;
+
+  loadFBXCached(BUNNY_FBX_SRC, (model) => {
+    console.log("BUNNY LOADED", model);
+
+    model.scale.set(0.15, 0.15, 0.15);
+    model.rotation.set(0, Math.PI, 0);
+    model.position.set(0.3, -1.6, 0);
+
+    room3d.activeRoomModel = model;
+    room3d.scene.add(model);
+
+    bunnyShownThisRun = true;
+  });
+
+  // animate (simple idle spin, optional)
+  if (!room3d.animId) {
+    const tick = () => {
+      room3d.animId = requestAnimationFrame(tick);
+      if (room3d.activeRoomModel) {
+        room3d.activeRoomModel.rotation.y += 0.003;
+      }
+      if (room3d.renderer && room3d.scene && room3d.camera) {
+        room3d.renderer.render(room3d.scene, room3d.camera);
+      }
+    };
+    tick();
+  }
+}
+
+// Overlay 3D (Key)
+function initOverlay3DOnce() {
+  const canvas = document.querySelector("#overlay3d");
+  if (!canvas || overlay3d.renderer) return;
+
+  overlay3d.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  overlay3d.renderer.setPixelRatio(window.devicePixelRatio || 1);
+
+  overlay3d.scene = new THREE.Scene();
+  overlay3d.camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+
+
+  overlay3d.camera.position.set(0, 0, 14);
+
+  overlay3d.loader = new window.FBXLoader();
+
+  overlay3d.scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+  const dir = new THREE.DirectionalLight(0xffffff, 0.7);
+  dir.position.set(2, 4, 6);
+  overlay3d.scene.add(dir);
+
+  overlay3d.resize = function () {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    overlay3d.camera.aspect = rect.width / rect.height;
+    overlay3d.camera.updateProjectionMatrix();
+    overlay3d.renderer.setSize(rect.width, rect.height, false);
+  };
+
+  window.addEventListener("resize", overlay3d.resize);
+  overlay3d.resize();
+
+  if (!overlay3d._clickBound) {
+    overlay3d._clickBound = true;
+    canvas.addEventListener("click", (e) => {
+      if (!overlay3d.active) return;
+      e.stopPropagation();
+
+      collectItem({
+        id: "key",
+        img: "Assets/keyreplacement.png"
+      });
+
+      hideOverlayKey3D();
+      renderOverlayItems(overlay3d.lastHotspot);
+    });
+  }
+}
+
+
+function showOverlayKey3D(hotspot) {
+  initOverlay3DOnce();
+
+  if (overlay3DPanel) overlay3DPanel.classList.remove("hidden");
+  overlay3d.resize?.();
+
+  const canvas = document.querySelector("#overlay3d");
+  if (!canvas) return;
+
+  overlay3d.lastHotspot = hotspot;
+  overlay3d.active = true;
+
+  canvas.style.pointerEvents = "auto";
+
+  // Clear old model
+  if (overlay3d.model) {
+    overlay3d.scene.remove(overlay3d.model);
+    overlay3d.model = null;
+  }
+
+  overlay3d.loader.load(
+    KEY_FBX_SRC,
+    (obj) => {
+
+      console.log("KEY LOADED", obj);
+
+      // -------- CENTER MODEL --------
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
+
+      obj.position.sub(center);
+
+
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const targetSize = 3.0;
+      const scale = targetSize / maxDim;
+      obj.scale.setScalar(scale);
+
+      obj.rotation.set(0, 0, 0);
+
+
+      const depth = -8;
+      obj.position.z = depth;
+
+
+      const fovRad = THREE.MathUtils.degToRad(overlay3d.camera.fov);
+      const distance = overlay3d.camera.position.z - obj.position.z;
+      const halfHeight = Math.tan(fovRad / 2) * distance;
+      const halfWidth = halfHeight * overlay3d.camera.aspect;
+
+
+      obj.position.x = halfWidth * 0.2;   // increase to 0.95 if needed
+      obj.position.y = 1.85;
+
+      overlay3d.model = obj;
+      overlay3d.scene.add(obj);
+    },
+    undefined,
+    (err) => console.error("FBX load failed:", KEY_FBX_SRC, err)
+  );
+
+  if (!overlay3d.animId) {
+    const tick = () => {
+      overlay3d.animId = requestAnimationFrame(tick);
+
+      if (overlay3d.active && overlay3d.model) {
+        overlay3d.model.rotation.y += 0.01;
+      }
+
+      if (overlay3d.renderer && overlay3d.scene && overlay3d.camera) {
+        overlay3d.renderer.render(overlay3d.scene, overlay3d.camera);
+      }
+    };
+    tick();
+  }
+}
+
+
+function hideOverlayKey3D() {
+  if (overlay3DPanel) overlay3DPanel.classList.add("hidden");
+  overlay3d.active = false;
+
+  if (overlay3d.model) {
+    overlay3d.scene.remove(overlay3d.model);
+    overlay3d.model = null;
+  }
+
+  if (overlay3d.axes) {
+    overlay3d.scene.remove(overlay3d.axes);
+    overlay3d.axes = null;
+  }
+}
+
+if (overlay3DPanel) {
+  overlay3DPanel.addEventListener("click", (e) => {
+    // Only close when clicking the dark background panel
+    if (e.target.id === "overlay3DPanel") {
+      hideOverlayKey3D();
+    }
+  });
+}
+
+// -----------------------------------------------------------
 
 //Pause system
 let isPaused = false;
@@ -51,6 +336,7 @@ function togglePause() {
 }
 
 function resetStoryRun() {
+  bunnyShownThisRun = false;
   // hard stop gameplay
   dialogueLocked = false;
   stopBossFightLoop();
@@ -91,6 +377,7 @@ function resetStoryRun() {
 }
 
 function startNewStoryRun() {
+  bunnyShownThisRun = false;
   isPaused = false;
   hidePauseOverlay?.();
   closeOverlay();
@@ -1816,7 +2103,12 @@ function renderOverlayItems(hotspot) {
 
   hotspot.items.forEach(item => {
     if (save.collected[item.id]) return;
-
+      // KEY uses 3D model instead of img
+    if (item.id === "key") {
+    // don’t create an image; show 3D key viewer instead
+    showOverlayKey3D(hotspot);
+    return;
+    }
     const img = document.createElement("img");
     img.src = item.img;
     img.classList.add("overlay-item");
@@ -1856,6 +2148,7 @@ function closeOverlay() {
   overlay.classList.add("hidden");
   overlayImage.src = "";
   overlayItems.innerHTML = "";
+  hideOverlayKey3D();
 }
 
 
@@ -2078,6 +2371,7 @@ function renderRoom() {
   const currentRoom = Rooms[currentRoomID];
 
   currentBGimg.src = currentRoom.bg;
+  renderRoomBunnyIfNeeded();
 
   updateArrows();
   renderHotspots();
@@ -2201,6 +2495,7 @@ if (mode === "story") {
 }
 
 function initSurvivalBase() {
+  bunnyShownThisRun = false;
   dialogueLocked = false;
   isPaused = false;
   hidePauseOverlay();

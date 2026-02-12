@@ -1,92 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Evangeline</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Mystery+Quest&family=Fredericka+the+Great&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Mystery+Quest&family=Fredericka+the+Great&family=Shadows+Into+Light&display=swap"
+    rel="stylesheet"
+  />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
+
 <body id="GameBody">
-    <div id="scene">
-      <img src="Assets/ProjectEvangelineBedroomPOV.png" id="GameBackground" alt="StartingBedroom">
-      
-      <div id="eyeOverlay">
-        <div class="eyelid top"></div>
-        <div class="eyelid bottom"></div>
-      </div>
+  <div id="scene">
+    <img
+      src="Assets/ProjectEvangelineBedroomPOV.png"
+      id="GameBackground"
+      alt="StartingBedroom"
+    />
+    <canvas id="room3d"></canvas>
 
-      <div id="dialogueBox" class="hidden">
-        <p id="dialogueText">what time is it? why do i feel so dizzy?</p>
-        <p id="dialogueHint">(click anywhere on box to continue)</p>
-      </div>
-
-      <div id="arrowSet">
-        <button class="hidden" id="arrowLeft" data-dir="left">◀</button>
-        <button class="hidden" id="arrowRight" data-dir="right">▶</button>
-        <button class="hidden" id="arrowForward" data-dir="forward">▲</button>
-        <button class="hidden"id="arrowBackward" data-dir="back">▼</button>
-      </div>
-
-      <button id="pauseButton">⏸</button>
-
-      <div id="pauseOverlay" class="hidden">
-        <div id="pauseMenu">
-          <h2>PAUSED</h2>
-          <button id="resume">Continue</button>
-          <button id="restart">Restart</button>
-          <button id="quit">Quit</button>
-        </div>
-      </div>
-
-      <div id="inventory">
-        <div class="inv-slot"></div>
-        <div class="inv-slot"></div>
-        <div class="inv-slot"></div>
-        <div class="inv-slot"></div>
-      </div>
-      <div id="toast" class="toast hidden"></div>
-
-      <div id="overlay" class="hidden">
-        <img id="overlayImage" src="" alt="">
-        <div id="overlayItems"></div>
-      </div>
-      
-      <div id="hotspots"></div>
+    <div id="eyeOverlay">
+      <div class="eyelid top"></div>
+      <div class="eyelid bottom"></div>
     </div>
-    <div id="hpbarsContainer">
-      <div class="playerHPgroup" id="playerHP">
-        <div class="HPlabel">YOU</div>
 
-        <div class="playerHPbar">
-          <div id="playerHPfill" class="HPfill"></div>
-        </div>
-
-        <div id="playerHPtext" class="HPtext">100 / 100</div>
-      </div>
-
-      <div class="bossHPgroup hidden" id="bossHP">
-        <div id="bossHPlabel" class="HPlabel"></div>
-
-        <div class="bossHPbar">
-          <div id="bossHPfill" class="bossFill"><div id="bossHPtext" class="HPtext">50 / 50</div></div>
-        </div>
-      </div>
-      <div id="jumpscare" class="hidden">
-        <img id="jumpscareImg" src="" alt="">
-      </div>
-      <img id="bossImage" class="hidden" />
-      <div id="damageFlash"></div>
+    <div id="overlay3DPanel" class="hidden">
+      <div id="overlay3DItems"></div>
+      <canvas id="overlay3d"></canvas>
     </div>
-    <div id="completedScreen" class="hidden">
-      <div class="completed-box">
-        <h1>COMPLETED</h1>
-        <button id="completedBtn">Back to Menu</button>
+
+    <div id="dialogueBox" class="hidden">
+      <p id="dialogueText">what time is it? why do i feel so dizzy?</p>
+      <p id="dialogueHint">(click anywhere on box to continue)</p>
+    </div>
+
+    <div id="arrowSet">
+      <button class="hidden" id="arrowLeft" data-dir="left">◀</button>
+      <button class="hidden" id="arrowRight" data-dir="right">▶</button>
+      <button class="hidden" id="arrowForward" data-dir="forward">▲</button>
+      <button class="hidden" id="arrowBackward" data-dir="back">▼</button>
+    </div>
+
+    <button id="pauseButton">⏸</button>
+
+    <div id="pauseOverlay" class="hidden">
+      <div id="pauseMenu">
+        <h2>PAUSED</h2>
+        <button id="resume">Continue</button>
+        <button id="restart">Restart</button>
+        <button id="quit">Quit</button>
       </div>
     </div>
 
-  <script src="Game.js"></script>
+    <div id="inventory">
+      <div class="inv-slot"></div>
+      <div class="inv-slot"></div>
+      <div class="inv-slot"></div>
+      <div class="inv-slot"></div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <div id="overlay" class="hidden">
+      <img id="overlayImage" src="" alt="" />
+      <div id="overlayItems"></div>
+    </div>
+
+    <div id="hotspots"></div>
+  </div>
+
+  <div id="hpbarsContainer">
+    <div class="playerHPgroup" id="playerHP">
+      <div class="HPlabel">YOU</div>
+
+      <div class="playerHPbar">
+        <div id="playerHPfill" class="HPfill"></div>
+      </div>
+
+      <div id="playerHPtext" class="HPtext">100 / 100</div>
+    </div>
+
+    <div class="bossHPgroup hidden" id="bossHP">
+      <div id="bossHPlabel" class="HPlabel"></div>
+
+      <div class="bossHPbar">
+        <div id="bossHPfill" class="bossFill">
+          <div id="bossHPtext" class="HPtext">50 / 50</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="jumpscare" class="hidden">
+      <img id="jumpscareImg" src="" alt="" />
+    </div>
+
+    <img id="bossImage" class="hidden" />
+    <div id="damageFlash"></div>
+  </div>
+
+  <div id="completedScreen" class="hidden">
+    <div class="completed-box">
+      <h1>COMPLETED</h1>
+      <button id="completedBtn">Back to Menu</button>
+    </div>
+  </div>
+  
+  <script type="module">
+    import * as THREE from "three";
+    import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+
+    window.THREE = THREE;
+    window.FBXLoader = FBXLoader;
+
+    const script = document.createElement("script");
+    script.src = "Game.js?v=" + Date.now();
+    document.body.appendChild(script);
+  </script>
 </body>
 </html>
