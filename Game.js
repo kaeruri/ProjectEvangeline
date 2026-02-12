@@ -1718,8 +1718,11 @@ function bindArrowControlsOnce() {
   }
 
   // FORWARD
-  if (forwardArrow) {
+  if (forwardArrow && !forwardArrow.dataset.bound) {
+    forwardArrow.dataset.bound = "1";
     forwardArrow.addEventListener("click", () => {
+      if (!canMove("forward")) return;
+
       const next = Rooms[currentRoomID].exits.forward;
       if (!next) return;
 
@@ -1729,7 +1732,6 @@ function bindArrowControlsOnce() {
       renderRoom();
       updateArrows();
 
-      // win handling
       if (prevRoomID === "exitHallway" && currentRoomID === "endingRoom") {
         stopBossFightLoop();
         stopWhispers();
@@ -1740,7 +1742,7 @@ function bindArrowControlsOnce() {
 
         if (mode === "survival") {
           stopSurvivalTimer?.();
-          submitSurvivalRunToLeaderboard(survivalElapsedMs); 
+          submitSurvivalRunToLeaderboard(survivalElapsedMs);
           showCompletedScreen();
         }
 
@@ -2172,6 +2174,7 @@ function respawnPlayer() {
 
 //survival
 function handleSurvivalDeath() {
+  if (mode !== "survival") return;
   showDeathScreen();
 }
 
@@ -2452,15 +2455,21 @@ function showCompletedScreen() {
 
 //Death screen (survival)
 function showDeathScreen() {
+  if (mode !== "survival") return;
+
+  isPaused = true;
   dialogueLocked = true;
-  isPaused = true; 
 
   stopBossFightLoop();
   stopWhispers();
-  stopSurvivalTimer?.();
-  hideSurvivalTimerUI?.();
-  closeOverlay?.();
-  hidePauseOverlay?.();
+  stopSurvivalTimer();
+  hidePauseOverlay();
+  closeOverlay();
+  hideOverlayKey3D?.();
+
+
+  bossHP?.classList.add("hidden");
+  bossImage?.classList.add("hidden");
 
   document.querySelector("#hotspots")?.classList.add("hidden");
   document.querySelector("#arrowLeft")?.classList.add("hidden");
@@ -2469,11 +2478,12 @@ function showDeathScreen() {
   document.querySelector("#arrowForward")?.classList.add("hidden");
   document.querySelector("#pauseButton")?.classList.add("hidden");
 
-  bossHP?.classList.add("hidden");
-  bossImage?.classList.add("hidden");
-
   const screen = document.querySelector("#deathScreen");
-  if (screen) screen.classList.remove("hidden");
+  if (!screen) {
+    console.warn("deathScreen missing in HTML");
+    return;
+  }
+  screen.classList.remove("hidden");
 
   const restartBtn = document.querySelector("#deathRestartBtn");
   const quitBtn = document.querySelector("#deathQuitBtn");
@@ -2481,30 +2491,33 @@ function showDeathScreen() {
   if (restartBtn && !restartBtn.dataset.bound) {
     restartBtn.dataset.bound = "1";
     restartBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       e.stopPropagation();
 
-      document.querySelector("#deathScreen")?.classList.add("hidden");
+      screen.classList.add("hidden");
+
       document.querySelector("#pauseButton")?.classList.remove("hidden");
       document.querySelector("#hotspots")?.classList.remove("hidden");
 
       isPaused = false;
       dialogueLocked = false;
 
-      initSurvivalBase(); 
+      initSurvivalBase();
     });
   }
 
   if (quitBtn && !quitBtn.dataset.bound) {
     quitBtn.dataset.bound = "1";
     quitBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       e.stopPropagation();
 
-      wipeSurvivalRunState?.();
-
+      wipeSurvivalRunState();
       window.location.href = "MainMenu.html";
     });
   }
 }
+
 
 
 //animations
@@ -3121,7 +3134,12 @@ function resumeSurvivalTimer() {
 function stopSurvivalTimer() {
   if (survivalTimerId) clearInterval(survivalTimerId);
   survivalTimerId = null;
+
+  survivalPaused = false;
+  survivalPauseStartMs = 0;
+  survivalPausedTotalMs = 0;
 }
+
 
 function hideSurvivalTimerUI() {
   if (survivalTimerBox) survivalTimerBox.classList.add("hidden");
