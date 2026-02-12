@@ -1256,11 +1256,11 @@ body.debug-hotspots .hotspot {
 }
 /*timer score*/
 
-#timerBox {
+#survivalTimer {
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 180px;
+  z-index: 40;
   padding: 10px 14px;
   background: rgba(0,0,0,0.6);
   border: 1px solid rgba(255,255,255,0.15);
@@ -1269,48 +1269,21 @@ body.debug-hotspots .hotspot {
   color: #eee;
   font-family: "Georgia", serif;
   pointer-events: none;
+  text-align: center;
 }
 
-#timerLabel {
+#survivalTimerLabel {
   font-weight: bold;
   letter-spacing: 2px;
-  opacity: 0.85;
   margin-bottom: 6px;
+  color: rgba(255, 0, 0, 0.85);
 }
 
-#timerText {
-  font-size: 1.3rem;
-  letter-spacing: 2px;
+#survivalTimerValue {
+  font-size: 1.1rem;
+  letter-spacing: 1px;
 }
 
-#scoreBox {
-  position: absolute;
-  top: 90px;
-  right: 16px;
-  width: 180px;
-  padding: 10px 14px;
-  background: rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 12px;
-  box-shadow: 0 0 18px rgba(255,0,0,0.15);
-  color: #eee;
-  font-family: "Georgia", serif;
-  pointer-events: none;
-}
-
-#scoreLabel {
-  font-weight: bold;
-  letter-spacing: 2px;
-  opacity: 0.85;
-  margin-bottom: 6px;
-}
-
-#scoreText {
-  font-size: 1.3rem;
-  letter-spacing: 2px;
-}
-
-#scoreBox.hidden { display: none; }
 
 .hidden {
   display: none !important ;

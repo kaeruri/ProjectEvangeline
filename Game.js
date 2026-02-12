@@ -2626,6 +2626,83 @@ if (mode === "story") {
 
 }
 
+//survival room randomisation
+function randomizeSurvivalLayoutNewRun() {
+  const nodes = [
+    "startingBedroom",
+    "livingRoom",
+    "diningArea",
+    "kitchen",
+    "toilet",
+    "parentsBedroom",
+    "exitHallway"
+  ];
+
+  nodes.forEach(id => (Rooms[id].exits = {}));
+
+  const DIRS = ["left", "right", "back"];
+
+  function firstFreeDir(roomId) {
+    for (const d of DIRS) {
+      if (!Rooms[roomId].exits[d]) return d;
+    }
+    return null;
+  }
+
+  function areConnected(a, b) {
+    return Object.values(Rooms[a].exits).includes(b) || Object.values(Rooms[b].exits).includes(a);
+  }
+
+  function link(a, b) {
+    if (a === b) return false;
+    if (areConnected(a, b)) return false;
+
+    const da = firstFreeDir(a);
+    const db = firstFreeDir(b);
+    if (!da || !db) return false;
+
+    Rooms[a].exits[da] = b;
+    Rooms[b].exits[db] = a;
+    return true;
+  }
+
+  const others = shuffle(nodes.filter(r => r !== "startingBedroom"));
+  let prev = "startingBedroom";
+
+  for (const r of others) {
+    if (!link(prev, r)) {
+      let linked = false;
+      for (const alt of shuffle(nodes)) {
+        if (link(alt, r)) {
+          linked = true;
+          break;
+        }
+      }
+      if (!linked) console.warn("Could not link room:", r);
+    }
+    prev = r;
+  }
+
+  const EXTRA_LINKS = 6;
+  let attempts = 0;
+  let added = 0;
+
+  while (added < EXTRA_LINKS && attempts < 200) {
+    attempts++;
+
+    const a = nodes[Math.floor(Math.random() * nodes.length)];
+    const b = nodes[Math.floor(Math.random() * nodes.length)];
+
+    if (link(a, b)) {
+      added++;
+    }
+  }
+
+  delete Rooms.exitHallway.exits.forward;
+}
+
+
+
 //Survival items
 const SURVIVAL_ITEM_POOL = [
   { id: "needle", img: "Assets/ProjectEvangelineNeedle.png" },
@@ -2673,8 +2750,6 @@ function pickAndPlaceSurvivalBossesNewRun() {
 
   saveGame();
 }
-
-
 
 //survival hotspots
 function shuffle(arr) {
@@ -2934,7 +3009,7 @@ function stopSurvivalTimer() {
   survivalTimerId = null;
 }
 
-
+//survivl base
 function initSurvivalBase() {
   localStorage.removeItem("save_survival");
   bunnyShownThisRun = false;
@@ -2948,32 +3023,7 @@ function initSurvivalBase() {
   const eye = document.getElementById("eyeOverlay");
   if (eye) eye.style.display = "none";
 
-
-  currentRoomID = "startingBedroom";
-
-
-
-  Rooms.startingBedroom.exits.left = "livingRoom";
-
-  Rooms.livingRoom.exits.back = "startingBedroom";
-  Rooms.livingRoom.exits.left = "diningArea";
-  Rooms.livingRoom.exits.right = "exitHallway";
-
-  Rooms.diningArea.exits.left = "kitchen";
-  Rooms.diningArea.exits.right = "livingRoom";
-
-  Rooms.kitchen.exits.back = "diningArea";
-  Rooms.kitchen.exits.right = "toilet";
-
-  Rooms.toilet.exits.left = "kitchen";
-
-  Rooms.exitHallway.exits.left = "livingRoom";
-  Rooms.exitHallway.exits.right = "parentsBedroom";
-  // forward locked until key in survival, so don't set it yet:
-  delete Rooms.exitHallway.exits.forward;
-
-  Rooms.parentsBedroom.exits.back = "exitHallway";
-
+  randomizeSurvivalLayoutNewRun();
   placeSurvivalItemsNewRun();
   pickAndPlaceSurvivalBossesNewRun();
   renderRoom();
