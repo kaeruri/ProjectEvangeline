@@ -5,365 +5,387 @@ let pendingJumpscare = null;
 
 const Rooms = {
 
-    startingBedroom: {
-        bg: "Assets/ProjectEvangelineBedroomPOV.png",
-        exits: {
-            left: {}
-        },
-        hotspots: [{
-            id: "SdrawerR1",
-            overlay: "drawer",
-            left: 84,
-            top: 62,
-            width: 13,
-            height: 10,
-            rotate: 22
-        },
-        {
-            id: "SdrawerL1",
-            overlay: "drawer",
-            left: 22,
-            top: 43,
-            width: 4.5,
-            height: 5,
-            rotate: 165
-        },
-        {   id: "SdrawerL2",
-            overlay: "drawer",
-            left: 22,
-            top: 50,
-            width: 5,
-            height: 4,
-            rotate: 160
-        },
-        {   id: "SdrawerL3",
-            overlay: "drawer",
-            left: 22,
-            top: 56,
-            width: 5,
-            height: 4.5,
-            rotate: 155
-        },
-        {   id: "SdrawerR2",
-            overlay: "drawer",
-            left: 76,
-            top: 62.5,
-            width: 6,
-            height: 3,
-            rotate: 27
-        },
-        {
-            id: "SdrawerR3",
-            overlay: "drawer",
-            left: 77,
-            top: 39.5,
-            width: 5,
-            height: 3,
-            rotate: 12
-        },
-        {   id: "SdrawerR4",
-            overlay: "drawer",
-            left: 89,
-            top: 44,
-            width: 5,
-            height: 3,
-            rotate: 11
-        }]
+  startingBedroom: {
+    bg: "Assets/ProjectEvangelineBedroomPOV.png",
+     exits: {
+      left: {}
+    },
+    hotspots: [{
+    id: "SdrawerR1",
+    overlay: "drawer",
+      left: 84,
+      top: 62,
+      width: 13,
+      height: 10,
+      rotate: 22
+    },
+    {
+      id: "SdrawerL1",
+      overlay: "drawer",
+      left: 22,
+      top: 43,
+      width: 4.5,
+      height: 5,
+      rotate: 165
+    },
+    { 
+      id: "SdrawerL2",
+      overlay: "drawer",
+      left: 22,
+      top: 50,
+      width: 5,
+      height: 4,
+      rotate: 160
+    },
+    {   
+      id: "SdrawerL3",
+      overlay: "drawer",
+      left: 22,
+      top: 56,
+      width: 5,
+      height: 4.5,
+      rotate: 155
+    },
+    {   
+      id: "SdrawerR2",
+      overlay: "drawer",
+      left: 76,
+      top: 62.5,
+      width: 6,
+      height: 3,
+      rotate: 27
+    },
+    {
+      id: "SdrawerR3",
+      overlay: "drawer",
+      left: 77,
+      top: 39.5,
+      width: 5,
+      height: 3,
+      rotate: 12
+    },
+    {   
+      id: "SdrawerR4",
+      overlay: "drawer",
+      left: 89,
+      top: 44,
+      width: 5,
+      height: 3,
+      rotate: 11
+    }]
+
+  },
+
+  livingRoom: {
+    bg: "Assets/ProjectEvangelineLivingRoom.png",
+    exits: {
+      back: {},
+      left: {},
+      right: {}
+    },
+    hotspots:[{
+      id: "LcabinetL1",
+      overlay: "cabinet",
+      left: 15.5,
+      top: 58,
+      width: 5,
+      height: 9,
+      rotate: -14
+    },
+    {   
+      id:"LcabinetL2",
+      overlay: "cabinet",
+      left: 21,
+      top: 55,
+      width: 4,
+      height: 9,
+      rotate: -14 
+    }]
+  },
+
+  diningArea: {
+    bg: "Assets/ProjectEvangelineDiningArea.png",
+    exits: {
+      left: {},
+      right: {}
+    },
+    hotspots: [{
+      id: "Dcabinet1",
+      overlay: "cabinet",
+      left: 43.75,
+      top: 11,
+      width: 9,
+      height: 7.5,
+      items: [{
+        id: "needle",
+        img: "Assets/ProjectEvangelineNeedle.png",
+        left: 35,
+        top: 68,
+        width: 15
+      }]
+    },
+    {   
+      id: "Dcabinet2",
+      overlay: "cabinet",
+      left: 35.5,
+      top: 11,
+      width: 7,
+      height: 12
+    },
+    {   
+      id: "Dcabinet3",
+      overlay: "cabinet",
+      left: 54,
+      top: 11,
+      width: 7,
+      height: 12
+    },
+    {   
+      id: "Ddrawer1",
+      overlay: "drawer",
+      left: 48.5,
+      top: 35.5,
+      width: 5,
+      height: 3
+    },
+    {   
+      id: "Ddrawer2",
+      overlay: "drawer",
+      left: 60.5,
+      top: 35.5,
+      width: 5,
+      height: 3
+    },
+    {   
+      id: "Ddrawer3",
+      overlay: "drawer",
+      left: 37.5,
+      top: 35.5,
+      width: 5.5,
+      height: 3
+    },
+    {   
+      id: "Ddrawer4",
+      overlay: "drawer",
+      left: 29.5,
+      top: 36,
+      width: 3.5,
+      height: 2.5,
+      rotate: -7
+    }]
+  },
+
+  kitchen: {
+    bg: "Assets/ProjectEvangelineKitchen.png",
+    exits: {
+      back: {},
+      right: {}
+    },
+    boss: { 
+      id: "boss1",
+      name: "FEMALE BOSS",
+      maxHP: 500,
+      img: "Assets/Boss1.png",
+      jumpscareImg: "Assets/Boss1jumpscare.png",
+      attackDamage: 3
+    },
+    hotspots: [{
+      id: "Kcabinet1",
+      overlay: "cabinet",
+      left: 10,
+      top: 10,
+      width: 9,
+      height: 18,
+      rotate: 1
+    },
+    {   
+      id: "Kcabinet2",
+      overlay: "cabinet",
+      left: 31.5,
+      top: 12,
+      width: 5,
+      height: 18,
+      rotate: 1.5
+    },
+    {   
+      id: "Kcabinet3",
+      overlay: "cabinet",
+      left: 45,
+      top: 14,
+      width: 8,
+      height: 15,
+      rotate: -1
+    },
+    {   
+      id: "Kcabinet4",
+      overlay: "cabinet",
+      left: 49,
+      top: 48,
+      width: 10,
+      height: 20,
+      rotate: 4
+    },
+    {   
+      id: "Kcabinet5",
+      overlay: "cabinet",
+      left: 13,
+      top: 52,
+      width: 10,
+      height: 10,
+      rotate: -5
+    },
+    {   
+      id: "Kdrawer1",
+      overlay: "drawer",
+      left: 13,
+      top: 46,
+      width: 10,
+      height: 4,
+      rotate: -4,
+      items: [{
+        id: "knife",
+        img: "Assets/ProjectEvangelineKnife.png",
+        left: 53,
+        top: 20,
+        width: 20
+      },
+      {   
+        id: "bandages",
+        img: "Assets/ProjectEvangelineBandages.png",
+        left: 22,
+        top: 50,
+        width: 20
+      }]
 
     },
+    {   
+      id: "Kdrawer2",
+      overlay: "drawer",
+      left: 37,
+      top: 44.5,
+      width: 3.5,
+      height: 3,
+      rotate: 4
+    }]
+  },
 
-    livingRoom: {
-        bg: "Assets/ProjectEvangelineLivingRoom.png",
-        exits: {
-            back: {},
-            left: {},
-            right: {}
-        },
-        hotspots:[{
-            id: "LcabinetL1",
-            overlay: "cabinet",
-            left: 15.5,
-            top: 58,
-            width: 5,
-            height: 9,
-            rotate: -14
-        },
-        {   id:"LcabinetL2",
-            overlay: "cabinet",
-            left: 21,
-            top: 55,
-            width: 4,
-            height: 9,
-            rotate: -14 
-        }]
+  toilet: {
+    bg: "Assets/ProjectEvangelineToilet.png",
+    exits: {
+      left: {}
     },
-
-    diningArea: {
-        bg: "Assets/ProjectEvangelineDiningArea.png",
-        exits: {
-            left: {},
-            right: {}
-        },
-        hotspots: [{
-            id: "Dcabinet1",
-            overlay: "cabinet",
-            left: 43.75,
-            top: 11,
-            width: 9,
-            height: 7.5,
-            items: [{
-                id: "needle",
-                img: "Assets/ProjectEvangelineNeedle.png",
-                left: 35,
-                top: 68,
-                width: 15
-            }]
-        },
-        {   id: "Dcabinet2",
-            overlay: "cabinet",
-            left: 35.5,
-            top: 11,
-            width: 7,
-            height: 12
-        },
-        {   id: "Dcabinet3",
-            overlay: "cabinet",
-            left: 54,
-            top: 11,
-            width: 7,
-            height: 12
-        },
-        {   id: "Ddrawer1",
-            overlay: "drawer",
-            left: 48.5,
-            top: 35.5,
-            width: 5,
-            height: 3
-        },
-        {   id: "Ddrawer2",
-            overlay: "drawer",
-            left: 60.5,
-            top: 35.5,
-            width: 5,
-            height: 3
-        },
-        {   id: "Ddrawer3",
-            overlay: "drawer",
-            left: 37.5,
-            top: 35.5,
-            width: 5.5,
-            height: 3
-        },
-        {   id: "Ddrawer4",
-            overlay: "drawer",
-            left: 29.5,
-            top: 36,
-            width: 3.5,
-            height: 2.5,
-            rotate: -7
-        }]
+    boss: {
+      id: "boss2",
+      name: "MALE BOSS",
+      maxHP: 500,
+      img: "Assets/Boss2.png",
+      jumpscareImg: "Assets/Boss2jumpscare.png",
+      attackDamage: 5
     },
-
-    kitchen: {
-        bg: "Assets/ProjectEvangelineKitchen.png",
-        exits: {
-            back: {},
-            right: {}
-        },
-        boss: { 
-            id: "boss1",
-            name: "FEMALE BOSS",
-            maxHP: 500,
-            img: "Assets/Boss1.png",
-            jumpscareImg: "Assets/Boss1jumpscare.png",
-            attackDamage: 3
-        },
-        hotspots: [{
-            id: "Kcabinet1",
-            overlay: "cabinet",
-            left: 10,
-            top: 10,
-            width: 9,
-            height: 18,
-            rotate: 1
-        },
-        {   id: "Kcabinet2",
-            overlay: "cabinet",
-            left: 31.5,
-            top: 12,
-            width: 5,
-            height: 18,
-            rotate: 1.5
-        },
-        {   id: "Kcabinet3",
-            overlay: "cabinet",
-            left: 45,
-            top: 14,
-            width: 8,
-            height: 15,
-            rotate: -1
-        },
-        {   id: "Kcabinet4",
-            overlay: "cabinet",
-            left: 49,
-            top: 48,
-            width: 10,
-            height: 20,
-            rotate: 4
-        },
-        {   id: "Kcabinet5",
-            overlay: "cabinet",
-            left: 13,
-            top: 52,
-            width: 10,
-            height: 10,
-            rotate: -5
-        },
-        {   id: "Kdrawer1",
-            overlay: "drawer",
-            left: 13,
-            top: 46,
-            width: 10,
-            height: 4,
-            rotate: -4,
-            items: [{
-                id: "knife",
-                img: "Assets/ProjectEvangelineKnife.png",
-                left: 53,
-                top: 20,
-                width: 20
-            },
-            {   id: "bandages",
-                img: "Assets/ProjectEvangelineBandages.png",
-                left: 22,
-                top: 50,
-                width: 20
-            }]
-
-        },
-        {   id: "Kdrawer2",
-            overlay: "drawer",
-            left: 37,
-            top: 44.5,
-            width: 3.5,
-            height: 3,
-            rotate: 4
-        }]
+    hotspots: [{
+      id: "Tcabinet1",
+      overlay: "cabinet",
+      left: 53.5,
+      top: 55.5,
+      width: 10,
+      height: 21,
+      rotate: 14,
+      items:[{
+        id: "bandages",
+        img: "Assets/ProjectEvangelineBandages.png",
+        left: 51,
+        top: 63,
+        width: 20
+      },
+      {   
+        id: "medkit",
+        img: "Assets/ProjectEvangelineMedkit.png",
+        left: 30,
+        top: 60,
+        width: 20
+      }]
     },
+    {
+      id: "Tdrawer1",
+      overlay: "drawer",
+      left: 65.5,
+      top: 60,
+      width: 7,
+      height: 5,
+      rotate: 14
+    }]
+  },
 
-    toilet: {
-        bg: "Assets/ProjectEvangelineToilet.png",
-        exits: {
-            left: {}
-        },
-        boss: {
-            id: "boss2",
-            name: "MALE BOSS",
-            maxHP: 500,
-            img: "Assets/Boss2.png",
-            jumpscareImg: "Assets/Boss2jumpscare.png",
-            attackDamage: 5
-        },
-        hotspots: [{
-            id: "Tcabinet1",
-            overlay: "cabinet",
-            left: 53.5,
-            top: 55.5,
-            width: 10,
-            height: 21,
-            rotate: 14,
-            items:[{
-                id: "bandages",
-                img: "Assets/ProjectEvangelineBandages.png",
-                left: 51,
-                top: 63,
-                width: 20
-            },
-            {   id: "medkit",
-                img: "Assets/ProjectEvangelineMedkit.png",
-                left: 30,
-                top: 60,
-                width: 20
-            }]
-        },
-        {
-            id: "Tdrawer1",
-            overlay: "drawer",
-            left: 65.5,
-            top: 60,
-            width: 7,
-            height: 5,
-            rotate: 14
-        }]
+  exitHallway: {
+    bg: "Assets/ProjectEvangelineExit.png",
+    exits: {
+      left: {},
+      right: {}
     },
-
-    exitHallway: {
-        bg: "Assets/ProjectEvangelineExit.png",
-        exits: {
-            left: {},
-            right: {}
-        },
-        boss: {
-            id: "boss3",
-            name: "FINAL BOSS",
-            maxHP: 1000,
-            img: "Assets/Boss3.png",
-            jumpscareImg: "Assets/Boss3jumpscare.png",
-            attackDamage: 6
-        }
-    },
-
-    parentsBedroom: {
-        bg: "Assets/ProjectEvangelineParentsBedroom.png",
-        exits: {
-            back: {}
-        },
-        hotspots: [{
-            id: "Pdrawer1",
-            overlay: "drawer",
-            left: 19.5,
-            top: 49.5,
-            width: 4,
-            height: 3,
-            rotate: -4,
-            items: [{
-                id: "key",
-                img: "Assets/keyreplacement.png",
-                left: 53,
-                top: 20,
-                width: 15
-            }]
-        },
-        {   id: "Pdrawer2",
-            overlay: "drawer",
-            left: 19.5,
-            top: 54,
-            width: 4,
-            height: 3,
-            rotate: -4
-        },
-        {   id: "Pdrawer3",
-            overlay: "drawer",
-            left: 19.5,
-            top: 58,
-            width: 4,
-            height: 3,
-            rotate: -4
-        },
-        {   id: "Pdrawer4",
-            overlay: "drawer",
-            left: 57,
-            top: 46,
-            width: 4,
-            height: 2.5,
-            rotate: -4.5
-        }]
-    },
-
-    EXIT: {
-        bg: "Assets/ProjectEvangelineLogin.png",
-        exits: {}
+    boss: {
+      id: "boss3",
+      name: "FINAL BOSS",
+      maxHP: 1000,
+      img: "Assets/Boss3.png",
+      jumpscareImg: "Assets/Boss3jumpscare.png",
+      attackDamage: 6
     }
+  },
+
+  parentsBedroom: {
+    bg: "Assets/ProjectEvangelineParentsBedroom.png",
+    exits: {
+      back: {}
+    },
+    hotspots: [{
+      id: "Pdrawer1",
+      overlay: "drawer",
+      left: 19.5,
+      top: 49.5,
+      width: 4,
+      height: 3,
+      rotate: -4,
+      items: [{
+        id: "key",
+        img: "Assets/keyreplacement.png",
+        left: 53,
+        top: 20,
+        width: 15
+      }]
+    },
+    {   
+      id: "Pdrawer2",
+      overlay: "drawer",
+      left: 19.5,
+      top: 54,
+      width: 4,
+      height: 3,
+      rotate: -4
+    },
+    {   
+      id: "Pdrawer3",
+      overlay: "drawer",
+      left: 19.5,
+      top: 58,
+      width: 4,
+      height: 3,
+      rotate: -4
+    },
+    {   
+      id: "Pdrawer4",
+      overlay: "drawer",
+      left: 57,
+      top: 46,
+      width: 4,
+      height: 2.5,
+      rotate: -4.5
+    }]
+  },
+
+  EXIT: {
+    bg: "Assets/ProjectEvangelineLogin.png",
+    exits: {}
+  }
 
 };
 
