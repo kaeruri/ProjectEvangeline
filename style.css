@@ -1254,6 +1254,63 @@ body.debug-hotspots .hotspot {
   height: 100%;
   pointer-events: auto; 
 }
+/*timer score*/
+
+#timerBox {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 180px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  box-shadow: 0 0 18px rgba(255,0,0,0.15);
+  color: #eee;
+  font-family: "Georgia", serif;
+  pointer-events: none;
+}
+
+#timerLabel {
+  font-weight: bold;
+  letter-spacing: 2px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+#timerText {
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+}
+
+#scoreBox {
+  position: absolute;
+  top: 90px;
+  right: 16px;
+  width: 180px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  box-shadow: 0 0 18px rgba(255,0,0,0.15);
+  color: #eee;
+  font-family: "Georgia", serif;
+  pointer-events: none;
+}
+
+#scoreLabel {
+  font-weight: bold;
+  letter-spacing: 2px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+#scoreText {
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+}
+
+#scoreBox.hidden { display: none; }
 
 .hidden {
   display: none !important ;

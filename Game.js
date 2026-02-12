@@ -1,6 +1,16 @@
 const mode = localStorage.getItem("gameMode");
 let audioUnlocked = false;
 let pendingJumpscare = null;
+const timerBox = document.querySelector("#timerBox");
+const scoreBox = document.querySelector("#scoreBox");
+
+function setSurvivalHUDVisible(isVisible) {
+  if (timerBox) timerBox.classList.toggle("hidden", !isVisible);
+  if (scoreBox) scoreBox.classList.toggle("hidden", !isVisible);
+}
+
+setSurvivalHUDVisible(mode === "survival");
+
 if (mode === "survival") {
   document.body.classList.add("debug-hotspots");
 } else {
@@ -408,9 +418,43 @@ function startNewStoryRun() {
   renderInventory();
 }
 
+//survival
+function wipeSurvivalProgress() {
+ 
+  stopBossFightLoop();
+  stopWhispers();
+  stopSurvivalTimer?.();
+  closeOverlay();
+  hideOverlayKey3D?.();
 
 
+  stopMainBGM?.();
+  stopEndingBGM?.();
 
+
+  localStorage.removeItem("save_survival");
+
+
+  save.inventory = [];
+  save.collected = {};
+  save.equippedSlot = null;
+
+  save.bosses = {};
+  save.jumpscaresPlayed = {};
+
+  save.survival = {
+    keyFound: false,
+    weaponUnlocked: false,
+    bossPlacements: {},
+    bossesDefeated: {}
+  };
+
+
+  playerHP = playerMaxHP;
+  updatePlayerHPUI();
+
+
+}
 
 const Rooms = {
 
@@ -913,9 +957,11 @@ const PHASE_START_ROOMS = {
 
 
 //save
+const SAVE_KEY = (mode === "survival") ? "save_survival" : "save_story";
+
 let save = (() => {
   try {
-    const raw = localStorage.getItem("save_story");
+    const raw = localStorage.getItem(SAVE_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
     return parsed && typeof parsed === "object" ? parsed : null;
   } catch (e) {
@@ -927,9 +973,8 @@ let save = (() => {
   equippedSlot: null
 };
 
-
 function saveGame() {
-  localStorage.setItem("save_story", JSON.stringify(save));
+  localStorage.setItem(SAVE_KEY, JSON.stringify(save));
 }
 
 save.story = save.story || {
@@ -1536,6 +1581,19 @@ function updateArrows() {
     return;
   }
 
+  // SURVIVAL
+  if (mode === "survival") {
+    forwardArrow.classList.add("hidden");
+
+    if (save.survival?.keyFound && currentRoomID === "exitHallway") {
+      forwardArrow.classList.remove("hidden");
+      Rooms.exitHallway.exits.forward = "endingRoom";
+    } else {
+      delete Rooms.exitHallway.exits.forward;
+    }
+
+    return;
+  }
 
   if (mode !== "story") return;
 
@@ -1767,8 +1825,12 @@ if (dialogueLocked) return;
         );
     }
     }
-
-
+    // SURVIVAL — key pickup unlocks exit
+    if (mode === "survival" && item.id === "key") {
+      save.survival.keyFound = true;
+      saveGame();
+      updateArrows();
+    }
 }
 
 
@@ -2319,6 +2381,8 @@ function showCompletedScreen() {
   dialogueLocked = true;
   stopBossFightLoop();
   stopWhispers();
+  stopSurvivalTimer();
+
 
   // hide interactables
   document.querySelector("#hotspots")?.classList.add("hidden");
@@ -2494,10 +2558,220 @@ if (mode === "story") {
 
 }
 
+//Survival items
+const SURVIVAL_ITEM_POOL = [
+  { id: "needle", img: "Assets/ProjectEvangelineNeedle.png" },
+  { id: "knife", img: "Assets/ProjectEvangelineKnife.png" },
+  { id: "bandages", img: "Assets/ProjectEvangelineBandages.png" },
+  { id: "medkit", img: "Assets/ProjectEvangelineMedkit.png" },
+  // { id: "gun", img: "Assets/ProjectEvangelineGun.png" },
+  // { id: "scissors", img: "Assets/ProjectEvangelineScissors.png" },
+  // { id: "injection", img: "Assets/ProjectEvangelineInjection.png" },
+];
+
+const SURVIVAL_WEAPONS = new Set(["needle", "knife", "gun", "scissors"]);
+
+
+//survival hotspots
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+//survival item placement
+function getAllHotspots(roomIDs) {
+  const out = [];
+  roomIDs.forEach(roomID => {
+    const room = Rooms[roomID];
+    (room?.hotspots || []).forEach(h => out.push({ roomID, hotspot: h }));
+  });
+  return out;
+}
+
+function isDrawerHotspot(h) {
+  return h?.overlay === "drawer";
+}
+
+function clearHotspotItems(roomIDs) {
+  roomIDs.forEach(roomID => {
+    Rooms[roomID]?.hotspots?.forEach(h => delete h.items);
+  });
+}
+
+function defaultPlacement() {
+  return { left: 45, top: 55, width: 18 };
+}
+
+function placeSurvivalItemsNewRun() {
+  const roomIDs = [
+    "startingBedroom",
+    "livingRoom",
+    "diningArea",
+    "kitchen",
+    "toilet",
+    "parentsBedroom",
+    "exitHallway"
+  ];
+
+  clearHotspotItems(roomIDs);
+
+  const all = getAllHotspots(roomIDs);
+  const drawerSpots = all.filter(x => isDrawerHotspot(x.hotspot));
+
+  const roomItemCount = {};
+  roomIDs.forEach(r => (roomItemCount[r] = 0));
+
+  if (drawerSpots.length > 0) {
+    const keySpot = drawerSpots[Math.floor(Math.random() * drawerSpots.length)];
+
+    keySpot.hotspot.items = [{
+      id: "key",
+      img: "Assets/keyreplacement.png",
+      ...defaultPlacement()
+    }];
+
+    roomItemCount[keySpot.roomID] += 1;
+  } else {
+    console.warn("No drawer hotspots found: key cannot be placed.");
+  }
+
+  const uniqueItems = shuffle(SURVIVAL_ITEM_POOL);
+
+
+  const weaponCandidates = uniqueItems.filter(i => SURVIVAL_WEAPONS.has(i.id));
+  if (weaponCandidates.length === 0) {
+    console.warn("No weapons in SURVIVAL_ITEM_POOL — bosses can never unlock.");
+  }
+
+
+  const maxNonKeyItemsToPlace = Math.min(6, uniqueItems.length);
+
+
+  const roomHotspots = {};
+  roomIDs.forEach(r => (roomHotspots[r] = []));
+
+  all.forEach(entry => {
+    roomHotspots[entry.roomID].push(entry.hotspot);
+  });
+
+
+  Object.keys(roomHotspots).forEach(r => {
+    roomHotspots[r] = shuffle(roomHotspots[r]);
+  });
+
+  const placedItemIds = new Set(); 
+
+  function canPlaceInRoom(roomID) {
+    return roomItemCount[roomID] < 2;
+  }
+
+  function placeIntoRoom(roomID, itemObj) {
+    if (!canPlaceInRoom(roomID)) return false;
+
+    const spots = roomHotspots[roomID];
+    if (!spots || spots.length === 0) return false;
+
+
+    const targetHotspot = spots.find(h => !h.items || h.items.length === 0);
+    if (!targetHotspot) return false;
+
+    targetHotspot.items = [{
+      id: itemObj.id,
+      img: itemObj.img,
+      ...defaultPlacement()
+    }];
+
+    roomItemCount[roomID] += 1;
+    placedItemIds.add(itemObj.id);
+    return true;
+  }
+
+
+  if (weaponCandidates.length > 0) {
+    const weapon = weaponCandidates[Math.floor(Math.random() * weaponCandidates.length)];
+
+
+    const roomsShuffled = shuffle(roomIDs);
+    let weaponPlaced = false;
+
+    for (const r of roomsShuffled) {
+      if (placeIntoRoom(r, weapon)) {
+        weaponPlaced = true;
+        break;
+      }
+    }
+
+    if (!weaponPlaced) {
+      console.warn("Could not place guaranteed weapon (no available hotspots).");
+    }
+  }
+
+  let placedCount = 0;
+
+  for (const item of uniqueItems) {
+    if (placedCount >= maxNonKeyItemsToPlace) break;
+    if (placedItemIds.has(item.id)) continue; 
+
+    const roomsShuffled = shuffle(roomIDs);
+    let placedThis = false;
+
+    for (const r of roomsShuffled) {
+      if (placeIntoRoom(r, item)) {
+        placedThis = true;
+        break;
+      }
+    }
+
+    if (placedThis) placedCount++;
+    else {
+      break;
+    }
+  }
+}
+
+
+//survival timer
+let survivalTimerId = null;
+let survivalStartedAt = 0;
+
+const timerText = document.querySelector("#timerText");
+
+function formatTime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function startSurvivalTimer() {
+  stopSurvivalTimer();
+  survivalStartedAt = Date.now();
+  if (timerText) timerText.textContent = "00:00";
+
+  survivalTimerId = setInterval(() => {
+    const elapsed = Date.now() - survivalStartedAt;
+    if (timerText) timerText.textContent = formatTime(elapsed);
+  }, 200);
+}
+
+function stopSurvivalTimer() {
+  if (survivalTimerId) clearInterval(survivalTimerId);
+  survivalTimerId = null;
+}
+
+
 function initSurvivalBase() {
+  localStorage.removeItem("save_survival");
   bunnyShownThisRun = false;
   dialogueLocked = false;
   isPaused = false;
+  save.survival = save.survival || {};
+  save.survival.keyFound = false;
+  saveGame();
   hidePauseOverlay();
   closeOverlay();
 
@@ -2531,6 +2805,7 @@ function initSurvivalBase() {
 
   Rooms.parentsBedroom.exits.back = "exitHallway";
 
+  placeSurvivalItemsNewRun();
   renderRoom();
 }
 
@@ -2539,7 +2814,7 @@ if (mode === "survival") {
   clearDynamicRoomContent();
   initSurvivalBase();
   bindArrowControlsOnce();
-  
+  startSurvivalTimer();
 }
 
 // Pause menu bindings
@@ -2587,9 +2862,9 @@ if (restartBtn && !restartBtn.dataset.bound) {
     if (mode === "story") {
       resetStoryRun();
     } else {
+      wipeSurvivalProgress();
       window.location.reload();
     }
-
   });
 }
 
@@ -2597,6 +2872,11 @@ if (quitBtn && !quitBtn.dataset.bound) {
   quitBtn.dataset.bound = "1";
   quitBtn.addEventListener("click", (e) => {
     e.stopPropagation();
+
+    if (mode === "survival") {
+      wipeSurvivalProgress();
+    }
+
     window.location.href = "MainMenu.html";
   });
 }
