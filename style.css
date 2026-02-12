@@ -1254,8 +1254,8 @@ body.debug-hotspots .hotspot {
   height: 100%;
   pointer-events: auto; 
 }
-/*timer score*/
 
+/*timer score*/
 #survivalTimer {
   position: absolute;
   top: 16px;
@@ -1282,6 +1282,57 @@ body.debug-hotspots .hotspot {
 #survivalTimerValue {
   font-size: 1.1rem;
   letter-spacing: 1px;
+}
+
+/*Death screen (survival)*/
+#deathScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.90);
+  z-index: 10000000;
+}
+
+#deathScreen.hidden { display: none; }
+
+.death-box {
+  padding: 44px 46px;
+  border: 1px solid rgba(150, 0, 0, 0.55);
+  background: black;
+  text-align: center;
+  box-shadow: 0 0 26px rgba(255,0,0,0.18);
+}
+
+.death-box h1 {
+  margin: 0 0 18px 0;
+  color: red;
+  font-family: "Fredericka the Great", cursive;
+  font-size: 3.2em;
+  letter-spacing: 2px;
+}
+
+.death-actions {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.death-actions button {
+  color: rgba(150, 0, 0, 0.65);
+  background-color: black;
+  border: 1px solid rgba(150, 0, 0, 0.55);
+  font-family: "Georgia", serif;
+  font-size: 1.2em;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.death-actions button:hover {
+  color: red;
+  border-color: red;
 }
 
 

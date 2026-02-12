@@ -2172,24 +2172,8 @@ function respawnPlayer() {
 
 //survival
 function handleSurvivalDeath() {
-  dialogueLocked = true;
-
-  // hide UI
-  bossHP.classList.add("hidden");
-  bossImage.classList.add("hidden");
-
-  // optional: fade screen / red overlay
-  document.body.classList.add("dead");
-
-  // disable movement
-  stopBossFightLoop();
-
-  // YOU decide what happens next:
-  // - reload page
-  // - show restart button
-  // - return to menu
+  showDeathScreen();
 }
-
 
 
 //hotspots
@@ -2465,6 +2449,63 @@ function showCompletedScreen() {
     });
   }
 }
+
+//Death screen (survival)
+function showDeathScreen() {
+  dialogueLocked = true;
+  isPaused = true; 
+
+  stopBossFightLoop();
+  stopWhispers();
+  stopSurvivalTimer?.();
+  hideSurvivalTimerUI?.();
+  closeOverlay?.();
+  hidePauseOverlay?.();
+
+  document.querySelector("#hotspots")?.classList.add("hidden");
+  document.querySelector("#arrowLeft")?.classList.add("hidden");
+  document.querySelector("#arrowRight")?.classList.add("hidden");
+  document.querySelector("#arrowBackward")?.classList.add("hidden");
+  document.querySelector("#arrowForward")?.classList.add("hidden");
+  document.querySelector("#pauseButton")?.classList.add("hidden");
+
+  bossHP?.classList.add("hidden");
+  bossImage?.classList.add("hidden");
+
+  const screen = document.querySelector("#deathScreen");
+  if (screen) screen.classList.remove("hidden");
+
+  const restartBtn = document.querySelector("#deathRestartBtn");
+  const quitBtn = document.querySelector("#deathQuitBtn");
+
+  if (restartBtn && !restartBtn.dataset.bound) {
+    restartBtn.dataset.bound = "1";
+    restartBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      document.querySelector("#deathScreen")?.classList.add("hidden");
+      document.querySelector("#pauseButton")?.classList.remove("hidden");
+      document.querySelector("#hotspots")?.classList.remove("hidden");
+
+      isPaused = false;
+      dialogueLocked = false;
+
+      initSurvivalBase(); 
+    });
+  }
+
+  if (quitBtn && !quitBtn.dataset.bound) {
+    quitBtn.dataset.bound = "1";
+    quitBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      wipeSurvivalRunState?.();
+
+      window.location.href = "MainMenu.html";
+    });
+  }
+}
+
 
 //animations
 function playEyeOpeningAnimation(onComplete = null) {
@@ -3126,11 +3167,31 @@ function submitSurvivalRunToLeaderboard(timeMs) {
   localStorage.setItem(saveKey, JSON.stringify(saveData));
 }
 
+function wipeSurvivalRunState() {
+  // wipe inventory + progress
+  save.inventory = [];
+  save.collected = {};
+  save.equippedSlot = null;
 
+  save.survival = {
+    keySpawned: false,
+    keyFound: false,
+    bossPlacements: {},
+    bossesDefeated: {},
+    weaponUnlocked: false
+  };
+
+  clearDynamicRoomContent();
+  clearAllHotspotItems?.(); 
+  removeKeyFromAllHotspots?.();
+
+  saveGame();
+  renderInventory();
+}
 
 //survival base
 function initSurvivalBase() {
-  localStorage.removeItem("save_survival");
+  wipeSurvivalRunState();
 
   bunnyShownThisRun = false;
   dialogueLocked = false;
