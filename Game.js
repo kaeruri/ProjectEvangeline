@@ -2483,6 +2483,7 @@ function showDeathScreen() {
     console.warn("deathScreen missing in HTML");
     return;
   }
+
   screen.classList.remove("hidden");
 
   const restartBtn = document.querySelector("#deathRestartBtn");
@@ -2490,17 +2491,21 @@ function showDeathScreen() {
 
   if (restartBtn && !restartBtn.dataset.bound) {
     restartBtn.dataset.bound = "1";
+
     restartBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
 
       screen.classList.add("hidden");
 
+      isPaused = false;
+      dialogueLocked = false;
+
+
       document.querySelector("#pauseButton")?.classList.remove("hidden");
       document.querySelector("#hotspots")?.classList.remove("hidden");
 
-      isPaused = false;
-      dialogueLocked = false;
+      currentRoomID = "startingBedroom";
 
       initSurvivalBase();
     });
@@ -2508,6 +2513,7 @@ function showDeathScreen() {
 
   if (quitBtn && !quitBtn.dataset.bound) {
     quitBtn.dataset.bound = "1";
+
     quitBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -2517,6 +2523,7 @@ function showDeathScreen() {
     });
   }
 }
+
 
 
 
@@ -3216,15 +3223,21 @@ function initSurvivalBase() {
   isPaused = false;
   hidePauseOverlay();
   closeOverlay();
+
+  currentRoomID = "startingBedroom";
+
   const eye = document.getElementById("eyeOverlay");
   if (eye) eye.style.display = "none";
+
   randomizeSurvivalLayoutNewRun();
   placeSurvivalItemsNewRun();
   removeKeyFromAllHotspots();
-  save.survival = save.survival || {};  
+
+  save.survival = save.survival || {};
   save.survival.keySpawned = false;
   save.survival.keyFound = false;
   saveGame();
+
   pickAndPlaceSurvivalBossesNewRun();
 
   hideSurvivalTimerUI();
@@ -3239,9 +3252,7 @@ function initSurvivalBase() {
       startSurvivalTimer();
     }
   );
-
 }
-
 
 
 if (mode === "survival") {
