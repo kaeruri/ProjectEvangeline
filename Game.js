@@ -1313,7 +1313,21 @@ const DIALOGUES = {
     { speaker: "BUNNY", text: "It's time for you to wake up now."},
     { speaker: "YOU", text: "wait....bunny!"},
 
-  ]
+  ],
+  survival_start_bedroom: [
+  { speaker: "BUNNY", text: "Oh?" },
+  { speaker: "BUNNY", text: "Back again?" },
+  { speaker: "BUNNY", text: "I told you not to come back here." },
+  { speaker: "BUNNY", text: "But since you decided to come back I'll give you a few warnings" },
+  { speaker: "BUNNY", text: "This won't be like the last time you were here" },
+  { speaker: "BUNNY", text: "This 'house' is now far more unstable...common logic doesn't apply here anymore" },
+  { speaker: "YOU", text: "What...?" },
+  { speaker: "BUNNY", text: "You'll find out soon enough" },
+  { speaker: "BUNNY", text: "Try not to get lost." },
+  { speaker: "SYSTEM", text: "(KEY WILL NOT SPAWN UNTIL ALL ENTITIES ARE KILLED)" },
+  { speaker: "SYSTEM", text: "(GAME STARTS AFTER THIS DIALOGUE)" }
+  ],
+
 };
 
 function handleRoomEnterDialogue() {
@@ -1729,7 +1743,7 @@ function bindArrowControlsOnce() {
           submitSurvivalRunToLeaderboard(survivalElapsedMs); 
           showCompletedScreen();
         }
-        
+
       } else if (mode === "story") {
         handlePhaseProgression(prevRoomID);
       }
@@ -3114,7 +3128,7 @@ function submitSurvivalRunToLeaderboard(timeMs) {
 
 
 
-//survivl base
+//survival base
 function initSurvivalBase() {
   localStorage.removeItem("save_survival");
 
@@ -3133,8 +3147,20 @@ function initSurvivalBase() {
   save.survival.keyFound = false;
   saveGame();
   pickAndPlaceSurvivalBossesNewRun();
-  startSurvivalTimer();
+
+  hideSurvivalTimerUI();
+  stopSurvivalTimer();
+
   renderRoom();
+
+  startDialogue(
+    "survival_start_bedroom",
+    DIALOGUES.survival_start_bedroom,
+    () => {
+      startSurvivalTimer();
+    }
+  );
+
 }
 
 
