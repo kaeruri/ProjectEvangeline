@@ -2651,7 +2651,9 @@ function renderRoom() {
   }
 }
 
-
+//creating timers
+const survivalTimerBox = document.querySelector("#survivalTimer");
+const survivalTimerValue = document.querySelector("#survivalTimerValue");
 
 if (mode === "story") {
   // STARTING BEDROOM
@@ -3069,10 +3071,6 @@ let survivalPaused = false;
 let survivalPauseStartMs = 0;
 let survivalPausedTotalMs = 0;
 
-
-const survivalTimerBox = document.querySelector("#survivalTimer");
-const survivalTimerValue = document.querySelector("#survivalTimerValue");
-
 function formatTimeMs(ms) {
   if (ms == null) return "—";
 
@@ -3084,12 +3082,11 @@ function formatTimeMs(ms) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${tenths}`;
 }
 
-
 function updateSurvivalTimerUI(ms) {
-  if (!survivalTimerValue) return;
-  survivalTimerValue.textContent = formatTimeMs(ms);
+  const val = document.querySelector("#survivalTimerValue");
+  if (!val) return;
+  val.textContent = formatTimeMs(ms);
 }
-
 
 function startSurvivalTimer() {
   if (mode !== "survival") return;
@@ -3143,8 +3140,10 @@ function stopSurvivalTimer() {
 
 
 function hideSurvivalTimerUI() {
-  if (survivalTimerBox) survivalTimerBox.classList.add("hidden");
+  const box = document.querySelector("#survivalTimer");
+  if (box) box.classList.add("hidden");
 }
+
 
 function getSurvivalScoreFromTime(ms) {
   const base = 100000;
