@@ -116,7 +116,7 @@ function renderRoomBunnyIfNeeded() {
     console.log("BUNNY LOADED", model);
 
     model.scale.set(0.15, 0.15, 0.15);
-    model.rotation.set(0, Math.PI, 0);
+    model.rotation.set(0, 0.1, 0);
     model.position.set(0.3, -1.6, 0);
 
     room3d.activeRoomModel = model;
@@ -129,9 +129,6 @@ function renderRoomBunnyIfNeeded() {
   if (!room3d.animId) {
     const tick = () => {
       room3d.animId = requestAnimationFrame(tick);
-      if (room3d.activeRoomModel) {
-        room3d.activeRoomModel.rotation.y += 0.003;
-      }
       if (room3d.renderer && room3d.scene && room3d.camera) {
         room3d.renderer.render(room3d.scene, room3d.camera);
       }
