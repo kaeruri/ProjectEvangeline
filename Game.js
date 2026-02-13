@@ -113,11 +113,33 @@ function renderRoomBunnyIfNeeded() {
   if (bunnyShownThisRun) return;
 
   loadFBXCached(BUNNY_FBX_SRC, (model) => {
-    console.log("BUNNY LOADED", model);
+
+    const texLoader = new THREE.TextureLoader();
+
+    const bunBase = texLoader.load("Assets/bun_low_standardSurface1_BaseMap.1001.png");
+    bunBase.colorSpace = THREE.SRGBColorSpace;
+
+    const bunNormal = texLoader.load("Assets/bun_low_standardSurface1_Normal.1001.png");
+    const bunMask = texLoader.load("Assets/bun_low_standardSurface1_MaskMap.1001.png");
+
+    const bunMat = new THREE.MeshStandardMaterial({
+      map: bunBase,
+      normalMap: bunNormal,
+      roughnessMap: bunMask,
+      metalnessMap: bunMask,
+      metalness: 1,
+      roughness: 1
+    });
+
+    model.traverse((child) => {
+      if (child.isMesh) {
+        child.material = bunMat;
+      }
+    });
 
     model.scale.set(0.15, 0.15, 0.15);
-    model.rotation.set(0, 0.1, 0);
     model.position.set(0.3, -1.6, 0);
+    model.rotation.set(0, 0, 0);
 
     room3d.activeRoomModel = model;
     room3d.scene.add(model);
@@ -210,6 +232,40 @@ function showOverlayKey3D(hotspot) {
   overlay3d.loader.load(
     KEY_FBX_SRC,
     (obj) => {
+      //textures
+      const texLoader = new THREE.TextureLoader();
+
+      const baseColor = texLoader.load("Assets/key_low_openPBR_shader1_BaseColor.1001.png");
+      baseColor.colorSpace = THREE.SRGBColorSpace;
+
+      const normalMap = texLoader.load("Assets/key_low_openPBR_shader1_Normal.1001.png");
+      normalMap.colorSpace = THREE.NoColorSpace;
+
+      const roughnessMap = texLoader.load("Assets/key_low_openPBR_shader1_Roughness.1001.png");
+      roughnessMap.colorSpace = THREE.NoColorSpace;
+
+      const metalnessMap = texLoader.load("Assets/key_low_openPBR_shader1_Metalness.1001.png");
+      metalnessMap.colorSpace = THREE.NoColorSpace;
+
+      const heightMap = texLoader.load("Assets/key_low_openPBR_shader1_Height.1001.png");
+      heightMap.colorSpace = THREE.NoColorSpace;
+
+      const keyMat = new THREE.MeshStandardMaterial({
+        map: baseColor,
+        normalMap,
+        roughnessMap,
+        metalnessMap,
+        metalness: 1,
+        roughness: 1
+      });
+
+      obj.traverse((child) => {
+        if (child.isMesh) {
+          child.material = keyMat;
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
 
       console.log("KEY LOADED", obj);
 
