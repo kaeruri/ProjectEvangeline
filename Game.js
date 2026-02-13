@@ -2654,6 +2654,12 @@ function renderRoom() {
 //creating timers
 const survivalTimerBox = document.querySelector("#survivalTimer");
 const survivalTimerValue = document.querySelector("#survivalTimerValue");
+let survivalStartMs = 0;
+let survivalTimerId = null;
+let survivalElapsedMs = 0;
+let survivalPaused = false;
+let survivalPauseStartMs = 0;
+let survivalPausedTotalMs = 0;
 
 if (mode === "story") {
   // STARTING BEDROOM
@@ -3064,12 +3070,6 @@ function removeKeyFromAllHotspots() {
 
 
 //survival timer
-let survivalStartMs = 0;
-let survivalTimerId = null;
-let survivalElapsedMs = 0;
-let survivalPaused = false;
-let survivalPauseStartMs = 0;
-let survivalPausedTotalMs = 0;
 
 function formatTimeMs(ms) {
   if (ms == null) return "—";
@@ -3130,12 +3130,33 @@ function resumeSurvivalTimer() {
 
 
 function stopSurvivalTimer() {
+  if (!survivalStartMs) {
+    if (survivalTimerId) clearInterval(survivalTimerId);
+    survivalTimerId = null;
+    survivalPaused = false;
+    survivalPauseStartMs = 0;
+    survivalPausedTotalMs = 0;
+    return;
+  }
+
+  const now = Date.now();
+
+  if (survivalPaused) {
+    survivalElapsedMs = (survivalPauseStartMs - survivalStartMs) - survivalPausedTotalMs;
+  } else {
+    survivalElapsedMs = (now - survivalStartMs) - survivalPausedTotalMs;
+  }
+
+  if (survivalElapsedMs < 0) survivalElapsedMs = 0;
+
   if (survivalTimerId) clearInterval(survivalTimerId);
   survivalTimerId = null;
 
   survivalPaused = false;
   survivalPauseStartMs = 0;
   survivalPausedTotalMs = 0;
+
+  updateSurvivalTimerUI(survivalElapsedMs);
 }
 
 
