@@ -1486,20 +1486,20 @@ body {
   /*arrows*/
   #arrowForward {
     font-size: 4.0rem;
-    bottom: 8%;
+    bottom: 15%;
     left: 50%;
   }
 
 
   #arrowLeft {
     font-size: 4.5rem;
-    bottom: 15%;
+    bottom: 10%;
     left: 15%;
   }
 
   #arrowRight {
     font-size: 4.5rem;
-    bottom: 15%;
+    bottom: 10%;
     right: 9%;
   }
 
@@ -1553,6 +1553,11 @@ body {
     height: auto;
     object-fit: cover;      
     object-position: center;
+  }
+  
+  /*boss*/
+  #bossImage {
+    height: 300px;
   }
 
 
