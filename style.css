@@ -1469,7 +1469,7 @@ body.debug-hotspots .hotspot {
   #Evangeline {
     display: none;
   }
-  
+
   .BlurredBox {
     z-index: 10;
     position: relative;
@@ -1478,6 +1478,91 @@ body.debug-hotspots .hotspot {
     min-width: 380px;
     left: 10%;
   }
+
+  /*dialogue box*/
+  #dialogueBox {
+    bottom: 8%;
+    width: 55%;
+    padding: 15px 20px;
+    font-size: 1.0rem;
+  }
+
+  #dialogueHint {
+    font-size: 0.8rem;
+  }
+
+  /*arrows*/
+  #arrowForward {
+    font-size: 4.0rem;
+    bottom: 8%;
+    left: 50%;
+  }
+
+
+  #arrowLeft {
+    font-size: 4.5rem;
+    bottom: 15%;
+    left: 15%;
+  }
+
+  #arrowRight {
+    font-size: 4.5rem;
+    bottom: 15%;
+    right: 9%;
+  }
+
+  #arrowBackward {
+    font-size: 4.0rem;
+    cursor: pointer;
+    bottom: 2%;
+    left: 50%;
+  }
+
+  /*inventory*/
+  #inventory {
+  position: absolute;
+    top: 32%;
+  }
+
+  .inv-slot {
+    width: 50px;
+    height: 50px;
+  }
+
+  /*hp bars*/
+  .playerHPgroup {
+    position: absolute;
+    width: 200px;
+    padding: 10px 14px;
+  }
+
+  .bossHPgroup {
+    top: 40px;
+    width: 280px;
+  }
+
+  .HPtext {
+    font-size: 0.65rem;
+  }
+
+  .playerHPbar {
+    height: 10px;
+  }
+
+  .bossHPbar {
+    height: 15px;
+  }
+
+  /*jumpscare*/
+  #jumpscareImg {
+    position: absolute;
+    inset: 0;
+    width: 1000px;
+    height: auto;
+    object-fit: cover;      
+    object-position: center;
+  }
+
 
 }
 
