@@ -1362,7 +1362,7 @@ body {
 
 /*Mobile CSS*/
 
-@media (max-width: 900px) and (orientation: landscape) {
+@media (max-width: 950px) and (orientation: landscape) {
 
   body {
     font-size: 1.2vw;
