@@ -1398,41 +1398,44 @@ body {
 
   /*leaderboard mobile*/
   #LeaderboardTitle {
-    font-size: 70px;
+    font-size: 50px;
   }
 
   #SubslistHeader {
-    font-size: 22px;
+    font-size: 18px;
     letter-spacing: 0.1em;
     gap: 220px;
-    top: 38%;
+    top: 40%;
   }
 
   #PlayerSubsList {
-    font-size: 18px;
+    font-size: 15px;
     gap: 30px;
-    top: 60%;
-    left: 17%;
-    transform: translate(-50%, -50%);
-    list-style: none;
+    top: 77%;
+    left: 20%;
+    align-items: center;
+
   }
 
   #TimeSubsList {
     font-size: 18px;
     gap: 30px;
-    top: 60%;
+    top: 77%;
     left: 50.5%;
+    align-items: center;
   }
 
   #ScoreSubsList {
     font-size: 18px;
     gap: 30px;
-    top: 60%;
-    left: 83.5%;
+    top: 77%;
+    left: 80%;
+    align-items: center;
+
   }
 
   #PersonalBestBox{
-    bottom: -40%;
+    bottom: -120%;
     left: 50%;
   }
 
