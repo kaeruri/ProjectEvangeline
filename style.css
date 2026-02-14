@@ -1123,14 +1123,6 @@ body {
   border: none;
 }
 
-/* DEBUG MODE ONLY */
-body.debug-hotspots .hotspot {
-  border: 2px solid red;
-  background: rgba(255, 0, 0, 0.2);
-}
-
-
-
 /*items*/
 
 #overlay {

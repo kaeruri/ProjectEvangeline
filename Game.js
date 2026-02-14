@@ -390,17 +390,16 @@ function togglePause() {
 
 function resetStoryRun() {
   bunnyShownThisRun = false;
-  // hard stop gameplay
+
   dialogueLocked = false;
   stopBossFightLoop();
   stopWhispers();
   closeOverlay();
+  hideOverlayKey3D?.();
 
-  // reset player
   playerHP = playerMaxHP;
   updatePlayerHPUI();
 
-  // reset save content
   save.inventory = [];
   save.collected = {};
   save.equippedSlot = null;
@@ -416,18 +415,20 @@ function resetStoryRun() {
     keyFound: false
   };
 
-  clearAllBosses();
+  setupStoryWorld();
 
-  
   currentRoomID = "startingBedroom";
 
   saveGame();
   renderInventory();
+  bindArrowControlsOnce(); 
 
   playEyeOpeningAnimation(() => {
+    startPhase(PHASES.BEDROOM);
     renderRoom();
   });
 }
+
 
 function startNewStoryRun() {
   bunnyShownThisRun = false;
@@ -2422,18 +2423,13 @@ const bossImage = document.querySelector("#bossImage");
 
 
 //clear bosses
-function clearAllBosses() {
-  restoreStoryBosses();
-  for (const room of Object.values(Rooms)) {
-    if (room.boss) {
-      delete room.boss;
-    }
-  }
 
+function clearAllBosses() {
   save.bosses = {};
   save.jumpscaresPlayed = {};
   saveGame();
 }
+
 
 //restore bosses
 function restoreStoryBosses() {
@@ -2598,6 +2594,30 @@ function playEyeOpeningAnimation(onComplete = null) {
   }, 2000);
 }
 
+function setupStoryWorld() {
+  Rooms.startingBedroom.exits = { left: "livingRoom" };
+
+  Rooms.livingRoom.exits = {
+    back: "startingBedroom",
+    left: "diningArea",
+    right: "exitHallway"
+  };
+
+  Rooms.diningArea.exits = { left: "kitchen", right: "livingRoom" };
+
+  Rooms.kitchen.exits = { back: "diningArea", right: "toilet" };
+
+  Rooms.toilet.exits = { left: "kitchen" };
+
+  Rooms.exitHallway.exits = { left: "livingRoom", right: "parentsBedroom" };
+
+  Rooms.parentsBedroom.exits = { back: "exitHallway" };
+
+  delete Rooms.exitHallway.exits.forward;
+
+  clearDynamicRoomContent();
+  applyStoryContent();
+}
 
 
 function renderRoom() {
@@ -2741,8 +2761,7 @@ if (mode === "story") {
   // PARENTS BEDROOM
   Rooms.parentsBedroom.exits.back = "exitHallway";
 
-  clearDynamicRoomContent();
-  applyStoryContent();
+  setupStoryWorld();
   startNewStoryRun();
   bindArrowControlsOnce();
 
