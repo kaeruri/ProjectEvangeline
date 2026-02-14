@@ -1777,10 +1777,9 @@ function bindArrowControlsOnce() {
       const prevRoomID = currentRoomID;
       currentRoomID = next;
 
-      renderRoom();
-      updateArrows();
+      const enteredEnding = (prevRoomID === "exitHallway" && currentRoomID === "endingRoom");
 
-      if (prevRoomID === "exitHallway" && currentRoomID === "endingRoom") {
+      if (enteredEnding) {
         stopBossFightLoop();
         stopWhispers();
 
@@ -1793,12 +1792,17 @@ function bindArrowControlsOnce() {
           submitSurvivalRunToLeaderboard(survivalElapsedMs);
           showCompletedScreen();
         }
+      }
 
-      } else if (mode === "story") {
+      renderRoom();
+      updateArrows();
+
+      if (!enteredEnding && mode === "story") {
         handlePhaseProgression(prevRoomID);
       }
     });
   }
+
 
 }
 
