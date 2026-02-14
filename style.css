@@ -1359,6 +1359,73 @@ body.debug-hotspots .hotspot {
     height: 100dvh;
     overflow: hidden;
   }
+  
+  /*starting page mobile*/
+  #StartingTitle {
+    font-size: 90px;
+    text-align: center;
+    position: absolute;
+    top: 22%;
+    left: 50%;
+  }
+
+  #StartingNavLinks {
+    gap: 30px;
+    font-weight: 300;          
+    top: 82%;
+    left: 50%;
+  }
+  
+  #StartingNavLinks button {
+    font-weight: 500;  
+    letter-spacing: 0.2em;  
+    font-size: 35px;
+  }
+
+
+  /*leaderboard mobile*/
+  #LeaderboardTitle {
+    font-size: 70px;
+  }
+
+  #SubslistHeader {
+    font-size: 22px;
+    letter-spacing: 0.1em;
+    gap: 220px;
+    top: 38%;
+  }
+
+  #PlayerSubsList {
+    font-size: 18px;
+    gap: 30px;
+    top: 60%;
+    left: 17%;
+    transform: translate(-50%, -50%);
+    list-style: none;
+  }
+
+
+  #TimeSubsList {
+    font-size: 18px;
+    gap: 30px;
+    top: 60%;
+    left: 50.5%;
+  }
+
+  #ScoreSubsList {
+    font-size: 18px;
+    gap: 30px;
+    top: 60%;
+    left: 83.5%;
+  }
+
+  #PersonalBestBox{
+    bottom: -40%;
+    left: 50%;
+  }
+
+  /*login page mobile*/
+
 
 }
 
