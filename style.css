@@ -1338,6 +1338,46 @@ body {
   display: none !important ;
 }
 
+/*Lottie Animation*/
+#loaderOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.75);
+  z-index: 9999;
+}
+
+#loaderOverlay.hidden {
+  display: none;
+}
+
+#loaderAnim {
+  width: 220px;
+  height: 220px;
+}
+
+#lottieLoader{
+  width: min(220px, 55vw);
+  aspect-ratio: 1 / 1;
+}
+
+#loadingText{
+  font-family: "Georgia", serif;
+  letter-spacing: 6px;
+  font-size: 14px;
+  color: rgba(255,0,0,0.75);
+  animation: loaderFlicker 2.4s infinite;
+}
+
+@keyframes loaderFlicker{
+  0%, 100% { opacity: 0.9; }
+  90% { opacity: 0.35; }
+  95% { opacity: 1; }
+}
+
+
 @media (orientation: portrait) {
   body::before {
     content: "ROTATE DEVICE";

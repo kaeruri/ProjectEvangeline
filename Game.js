@@ -1,4 +1,61 @@
 const mode = localStorage.getItem("gameMode");
+let loaderAnim = null;
+let loaderReady = false;
+
+function initLoaderOnce() {
+  if (loaderAnim) return;
+
+  const container = document.getElementById("loaderAnim");
+  if (!container || !window.lottie) {
+    console.warn("Loader missing #loaderAnim or lottie not loaded yet.");
+    return;
+  }
+
+  loaderReady = false;
+
+  loaderAnim = lottie.loadAnimation({
+    container,
+    renderer: "svg",
+    loop: true,
+    autoplay: false,
+    path: "Assets/LottieAnimation.json"
+  });
+
+  loaderAnim.addEventListener("DOMLoaded", () => {
+    loaderReady = true;
+  });
+
+  loaderAnim.addEventListener("data_failed", (e) => {
+    console.error("Lottie failed to load JSON:", e);
+  });
+}
+
+function showLoader() {
+  initLoaderOnce();
+
+  const overlay = document.getElementById("loaderOverlay");
+  if (overlay) overlay.classList.remove("hidden");
+
+  // Wait until the animation is actually ready
+  if (loaderAnim) {
+    if (loaderReady) {
+      loaderAnim.goToAndPlay(0, true);
+    } else {
+      loaderAnim.stop();
+      loaderAnim.addEventListener("DOMLoaded", () => {
+        loaderAnim.goToAndPlay(0, true);
+      }, { once: true });
+    }
+  }
+}
+
+function hideLoader() {
+  const overlay = document.getElementById("loaderOverlay");
+  if (overlay) overlay.classList.add("hidden");
+  loaderAnim?.stop();
+}
+
+
 let audioUnlocked = false;
 let pendingJumpscare = null;
 const timerBox = document.querySelector("#timerBox");
@@ -389,6 +446,7 @@ function togglePause() {
 }
 
 function resetStoryRun() {
+  showLoader();
   bunnyShownThisRun = false;
 
   dialogueLocked = false;
@@ -426,6 +484,7 @@ function resetStoryRun() {
   playEyeOpeningAnimation(() => {
     startPhase(PHASES.BEDROOM);
     renderRoom();
+    hideLoader();
   });
 }
 
@@ -2577,26 +2636,25 @@ function showDeathScreen() {
 //animations
 function playEyeOpeningAnimation(onComplete = null) {
   const overlay = document.getElementById("eyeOverlay");
-  if (!overlay) return;
-  
-  overlay.style.display = ""; 
-  dialogueLocked = true; // lock player during animation
 
+  if (!overlay) {
+    dialogueLocked = false;
+    if (typeof onComplete === "function") onComplete();
+    return;
+  }
 
-  setTimeout(() => {
-    overlay.classList.add("open");
-  }, 200);
+  overlay.style.display = "";
+  dialogueLocked = true;
 
+  setTimeout(() => overlay.classList.add("open"), 200);
 
   setTimeout(() => {
     overlay.style.display = "none";
     dialogueLocked = false;
-
-    if (typeof onComplete === "function") {
-      onComplete();
-    }
+    if (typeof onComplete === "function") onComplete();
   }, 2000);
 }
+
 
 function setupStoryWorld() {
   Rooms.startingBedroom.exits = { left: "livingRoom" };
@@ -3306,6 +3364,7 @@ function wipeSurvivalRunState() {
 
 //survival base
 function initSurvivalBase() {
+  showLoader();
   wipeSurvivalRunState();
 
   playerHP = playerMaxHP;
@@ -3337,6 +3396,7 @@ function initSurvivalBase() {
   stopSurvivalTimer();
 
   renderRoom();
+  hideLoader();
 
   startDialogue(
     "survival_start_bedroom",
